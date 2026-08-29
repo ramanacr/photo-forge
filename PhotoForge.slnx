@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/apps/">
+    <Project Path="apps/PhotoForge.Android/PhotoForge.Android.csproj" />
+    <Project Path="apps/PhotoForge.Desktop/PhotoForge.Desktop.csproj" />
+    <Project Path="apps/PhotoForge.Shell/PhotoForge.Shell.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/PhotoForge.Audit/PhotoForge.Audit.csproj" />
+    <Project Path="src/PhotoForge.Core/PhotoForge.Core.csproj" />
+    <Project Path="src/PhotoForge.Imaging/PhotoForge.Imaging.csproj" />
+    <Project Path="src/PhotoForge.Matching/PhotoForge.Matching.csproj" />
+    <Project Path="src/PhotoForge.Metadata/PhotoForge.Metadata.csproj" />
+    <Project Path="src/PhotoForge.Platform/PhotoForge.Platform.csproj" />
+    <Project Path="src/PhotoForge.Storage/PhotoForge.Storage.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PhotoForge.Tests/PhotoForge.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/PhotoForge.Cli/PhotoForge.Cli.csproj" />
+  </Folder>
+</Solution>

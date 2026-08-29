@@ -1,0 +1,67 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "PhotoForge-v1.0.0-SBOM",
+  "documentNamespace": "http://photoforge.example/spdx/photoforge-1.0.0",
+  "creationInfo": {
+    "created": "2026-08-29T15:00:00Z",
+    "creators": [
+      "Organization: PhotoForge Team",
+      "Tool: PhotoForge Release Automation"
+    ]
+  },
+  "packages": [
+    {
+      "name": "PhotoForge",
+      "SPDXID": "SPDXRef-Package-PhotoForge",
+      "versionInfo": "1.0.0",
+      "downloadLocation": "https://github.com/ramanacr/photo-forge/releases/tag/v1.0.0",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "Copyright (c) 2026 PhotoForge",
+      "description": "Offline photo metadata continuity and format conversion platform"
+    },
+    {
+      "name": "MetadataExtractor",
+      "SPDXID": "SPDXRef-Package-MetadataExtractor",
+      "versionInfo": "2.8.1",
+      "downloadLocation": "https://www.nuget.org/packages/MetadataExtractor/2.8.1",
+      "filesAnalyzed": false,
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "copyrightText": "Copyright (c) Drew Noakes and contributors"
+    },
+    {
+      "name": "SixLabors.ImageSharp",
+      "SPDXID": "SPDXRef-Package-ImageSharp",
+      "versionInfo": "3.1.7",
+      "downloadLocation": "https://www.nuget.org/packages/SixLabors.ImageSharp/3.1.7",
+      "filesAnalyzed": false,
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "copyrightText": "Copyright (c) Six Labors"
+    },
+    {
+      "name": "Microsoft.Data.Sqlite",
+      "SPDXID": "SPDXRef-Package-Sqlite",
+      "versionInfo": "9.0.2",
+      "downloadLocation": "https://www.nuget.org/packages/Microsoft.Data.Sqlite/9.0.2",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "Copyright (c) Microsoft Corporation"
+    },
+    {
+      "name": "Spectre.Console",
+      "SPDXID": "SPDXRef-Package-SpectreConsole",
+      "versionInfo": "0.49.1",
+      "downloadLocation": "https://www.nuget.org/packages/Spectre.Console/0.49.1",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "Copyright (c) Patrik Svensson, Phil Scott"
+    }
+  ]
+}

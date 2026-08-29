@@ -1,0 +1,30 @@
+{
+  "product": "PhotoForge",
+  "version": "baseline-2026-08-29",
+  "documents": [
+    "00-README.md",
+    "01-PRD.md",
+    "02-SYSTEM-ARCHITECTURE.md",
+    "03-METADATA-SPEC.md",
+    "04-FORMAT-COMPATIBILITY-MATRIX.md",
+    "05-MATCHING-ENGINE.md",
+    "06-WINDOWS-PLATFORM.md",
+    "07-ANDROID-PLATFORM.md",
+    "08-UX-FLOWS.md",
+    "09-SECURITY-PRIVACY.md",
+    "10-TEST-STRATEGY.md",
+    "11-ROADMAP-COMMERCIALIZATION.md",
+    "12-THIRD-PARTY-LICENSING.md",
+    "13-AGENT-IMPLEMENTATION-GUIDE.md",
+    "14-DECISIONS-REGISTER.md",
+    "15-RESEARCH-NOTES.md"
+  ],
+  "principles": [
+    "offline-only-core-processing",
+    "original-files-never-modified",
+    "metadata-continuity",
+    "intelligent-match-with-manual-override",
+    "idempotent-migration-marker",
+    "metadata-aware-heic-conversion"
+  ]
+}

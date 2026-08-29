@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>PhotoForge.Android</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PhotoForge.Core\PhotoForge.Core.csproj" />
+    <ProjectReference Include="..\..\src\PhotoForge.Metadata\PhotoForge.Metadata.csproj" />
+    <ProjectReference Include="..\..\src\PhotoForge.Imaging\PhotoForge.Imaging.csproj" />
+    <ProjectReference Include="..\..\src\PhotoForge.Matching\PhotoForge.Matching.csproj" />
+    <ProjectReference Include="..\..\src\PhotoForge.Storage\PhotoForge.Storage.csproj" />
+    <ProjectReference Include="..\..\src\PhotoForge.Platform\PhotoForge.Platform.csproj" />
+  </ItemGroup>
+
+</Project>

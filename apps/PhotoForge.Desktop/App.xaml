@@ -1,0 +1,53 @@
+<Application x:Class="PhotoForge.Desktop.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <!-- Modern Dark Theme Palette -->
+        <SolidColorBrush x:Key="BgDark" Color="#121214" />
+        <SolidColorBrush x:Key="SurfaceDark" Color="#1E1E24" />
+        <SolidColorBrush x:Key="SurfaceDarker" Color="#16161A" />
+        <SolidColorBrush x:Key="SurfaceBorder" Color="#2E2E38" />
+        <SolidColorBrush x:Key="AccentPrimary" Color="#00D2FF" />
+        <SolidColorBrush x:Key="AccentSecondary" Color="#3A7BD5" />
+        <SolidColorBrush x:Key="AccentSuccess" Color="#10B981" />
+        <SolidColorBrush x:Key="AccentWarning" Color="#F59E0B" />
+        <SolidColorBrush x:Key="AccentDanger" Color="#EF4444" />
+        <SolidColorBrush x:Key="TextPrimary" Color="#F3F4F6" />
+        <SolidColorBrush x:Key="TextSecondary" Color="#9CA3AF" />
+        <SolidColorBrush x:Key="TextMuted" Color="#6B7280" />
+
+        <!-- Control Styles -->
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource AccentSecondary}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentPrimary}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource SurfaceDarker}" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
+            <Setter Property="BorderBrush" Value="{StaticResource SurfaceBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="CaretBrush" Value="{StaticResource AccentPrimary}" />
+        </Style>
+    </Application.Resources>
+</Application>

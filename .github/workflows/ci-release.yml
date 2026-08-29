@@ -1,0 +1,44 @@
+name: PhotoForge CI & Release
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore PhotoForge.slnx
+
+      - name: Build solution
+        run: dotnet build PhotoForge.slnx -c Release --no-restore
+
+      - name: Run Test Suites
+        run: dotnet test tests/PhotoForge.Tests/PhotoForge.Tests.csproj -c Release --no-build --verbosity normal
+
+      - name: Package Release Assets
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: ./build/package-releases.ps1 -Version ${{ github.ref_name }}
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/dist/*.zip
+            build/dist/SHA256SUMS.txt
+            build/sbom.spdx.json
+          generate_release_notes: true

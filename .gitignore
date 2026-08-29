@@ -55,3 +55,9 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Release dist & local databases
+build/dist/
+*.db
+*.db-shm
+*.db-wal

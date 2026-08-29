@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>PhotoForge.Cli</RootNamespace>
+    <AssemblyName>photoforge</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PhotoForge.Core\PhotoForge.Core.csproj" />
+    <ProjectReference Include="..\..\src\PhotoForge.Metadata\PhotoForge.Metadata.csproj" />
+    <ProjectReference Include="..\..\src\PhotoForge.Imaging\PhotoForge.Imaging.csproj" />
+    <ProjectReference Include="..\..\src\PhotoForge.Matching\PhotoForge.Matching.csproj" />
+    <ProjectReference Include="..\..\src\PhotoForge.Storage\PhotoForge.Storage.csproj" />
+    <ProjectReference Include="..\..\src\PhotoForge.Audit\PhotoForge.Audit.csproj" />
+    <ProjectReference Include="..\..\src\PhotoForge.Platform\PhotoForge.Platform.csproj" />
+    <ProjectReference Include="..\..\apps\PhotoForge.Shell\PhotoForge.Shell.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Spectre.Console" Version="0.49.1" />
+  </ItemGroup>
+
+</Project>
