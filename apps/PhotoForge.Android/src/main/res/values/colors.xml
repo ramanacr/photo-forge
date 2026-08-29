@@ -1,0 +1,10 @@
+<resources>
+    <color name="bg_dark">#121212</color>
+    <color name="surface_dark">#1E1E1E</color>
+    <color name="card_dark">#252525</color>
+    <color name="accent_cyan">#00B4D8</color>
+    <color name="accent_green">#4ADE80</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#AAAAAA</color>
+    <color name="border_dark">#333333</color>
+</resources>

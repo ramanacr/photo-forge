@@ -2,6 +2,7 @@
   <Folder Name="/apps/">
     <Project Path="apps/PhotoForge.Android/PhotoForge.Android.csproj" />
     <Project Path="apps/PhotoForge.Desktop/PhotoForge.Desktop.csproj" />
+    <Project Path="apps/PhotoForge.Installer/PhotoForge.Installer.csproj" />
     <Project Path="apps/PhotoForge.Shell/PhotoForge.Shell.csproj" />
   </Folder>
   <Folder Name="/src/">

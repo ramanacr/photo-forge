@@ -12,6 +12,7 @@ using PhotoForge.Core.Services;
 using PhotoForge.Imaging;
 using PhotoForge.Matching;
 using PhotoForge.Metadata;
+using PhotoForge.Platform;
 using PhotoForge.Storage;
 using PhotoForge.Storage.Database;
 using Spectre.Console;
@@ -72,6 +73,7 @@ public class Program
                 "inspect" => await HandleInspectAsync(args, metadataEngine, imageEngine, jsonMode),
                 "match" => await HandleMatchAsync(args, matchingEngine, imageEngine, metadataEngine, storageEngine, jsonMode),
                 "batch" => await HandleBatchAsync(args, pipeline, jsonMode),
+                "update" => await HandleUpdateAsync(args, jsonMode),
                 _ => PrintUnknownCommand(command)
             };
         }
@@ -118,6 +120,7 @@ public class Program
         AnsiConsole.MarkupLine("  [cyan]inspect[/]    Inspect all extracted metadata categories");
         AnsiConsole.MarkupLine("  [cyan]match[/]      Find and rank original photo candidates for an edited photo");
         AnsiConsole.MarkupLine("  [cyan]batch[/]      Batch process directories of edited photos against originals");
+        AnsiConsole.MarkupLine("  [cyan]update[/]     Check for and apply self-updates from GitHub Releases");
         Console.WriteLine();
         AnsiConsole.MarkupLine("[bold]GLOBAL OPTIONS:[/]");
         AnsiConsole.MarkupLine("  [cyan]--json[/]      Output machine-readable JSON");
@@ -516,5 +519,101 @@ public class Program
             table.AddRow("[yellow]Warnings[/]", diff.Warnings.Count.ToString(), string.Join("; ", diff.Warnings));
 
         AnsiConsole.Write(table);
+    }
+
+    private static async Task<int> HandleUpdateAsync(string[] args, bool jsonMode)
+    {
+        var updateService = new GitHubUpdateService();
+        bool apply = args.Contains("--apply") || args.Contains("-y");
+        bool silent = args.Contains("--silent") || args.Contains("/s");
+
+        if (!jsonMode)
+        {
+            AnsiConsole.MarkupLine("[bold cyan]Checking for PhotoForge updates on GitHub Releases...[/]");
+        }
+
+        var updateInfo = await updateService.CheckForUpdatesAsync("1.0.0");
+        if (updateInfo == null)
+        {
+            if (jsonMode) Console.WriteLine(JsonSerializer.Serialize(new { status = "error", message = "Failed to query GitHub releases." }));
+            else AnsiConsole.MarkupLine("[red]Unable to check for updates. Please verify your internet connection or check https://github.com/ramanacr/photo-forge/releases[/]");
+            return 1;
+        }
+
+        if (!updateInfo.IsUpdateAvailable)
+        {
+            if (jsonMode)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { status = "up_to_date", currentVersion = updateInfo.CurrentVersion, latestVersion = updateInfo.LatestVersion }));
+            }
+            else
+            {
+                AnsiConsole.MarkupLine($"[green]PhotoForge is up to date! (Current version: v{updateInfo.CurrentVersion})[/]");
+            }
+            return 0;
+        }
+
+        if (jsonMode)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new
+            {
+                status = "update_available",
+                currentVersion = updateInfo.CurrentVersion,
+                latestVersion = updateInfo.LatestVersion,
+                title = updateInfo.ReleaseTitle,
+                downloadUrl = updateInfo.DownloadUrl,
+                releaseNotes = updateInfo.ReleaseNotes
+            }));
+            if (!apply) return 0;
+        }
+        else
+        {
+            AnsiConsole.MarkupLine($"[yellow bold]⚡ New version available:[/] [bold green]v{updateInfo.LatestVersion}[/] (current: v{updateInfo.CurrentVersion})");
+            AnsiConsole.MarkupLine($"[white]{updateInfo.ReleaseTitle}[/]");
+            if (!string.IsNullOrWhiteSpace(updateInfo.ReleaseNotes))
+            {
+                var panel = new Panel(updateInfo.ReleaseNotes.Trim()) { Header = new PanelHeader("Release Notes"), Border = BoxBorder.Rounded };
+                AnsiConsole.Write(panel);
+            }
+
+            if (!apply)
+            {
+                if (!AnsiConsole.Confirm("Would you like to download and install this update now?"))
+                {
+                    return 0;
+                }
+            }
+        }
+
+        if (!jsonMode) AnsiConsole.MarkupLine("[cyan]Downloading update package...[/]");
+
+        string downloadedFile;
+        if (!jsonMode)
+        {
+            downloadedFile = await AnsiConsole.Progress()
+                .StartAsync(async ctx =>
+                {
+                    var task = ctx.AddTask("[green]Downloading update[/]");
+                    var progress = new Progress<double>(p => task.Value = p * 100);
+                    return await updateService.DownloadUpdateAsync(updateInfo, progress);
+                });
+        }
+        else
+        {
+            downloadedFile = await updateService.DownloadUpdateAsync(updateInfo);
+        }
+
+        if (!jsonMode) AnsiConsole.MarkupLine("[cyan]Verifying SHA-256 integrity checksum...[/]");
+        bool verified = await updateService.VerifyDownloadedUpdateAsync(downloadedFile, updateInfo.ExpectedSha256 ?? "");
+        if (!verified)
+        {
+            if (jsonMode) Console.WriteLine(JsonSerializer.Serialize(new { status = "error", message = "SHA-256 checksum verification failed." }));
+            else AnsiConsole.MarkupLine("[red bold]Security Check Failed:[/] Downloaded update SHA-256 hash does not match release manifest!");
+            return 1;
+        }
+
+        if (!jsonMode) AnsiConsole.MarkupLine("[green]Checksum verified! Launching installer and restarting...[/]");
+        updateService.ApplyUpdateAndRestart(downloadedFile, silent);
+        return 0;
     }
 }

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Zero Network Permissions: 100% Offline Guaranteed -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.PhotoForge">
+
+        <!-- Main Launcher Dashboard -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Android Share Sheet Receiver for Single & Multiple Photos -->
+        <activity
+            android:name=".ShareReceiverActivity"
+            android:exported="true"
+            android:label="@string/share_receiver_title">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+        </activity>
+
+        <!-- Interactive Candidate Match Review Activity -->
+        <activity
+            android:name=".MatchReviewActivity"
+            android:exported="false"
+            android:label="@string/match_review_title" />
+
+        <!-- Side-by-Side Metadata Diff Inspector Activity -->
+        <activity
+            android:name=".DiffInspectorActivity"
+            android:exported="false"
+            android:label="@string/diff_inspector_title" />
+
+        <!-- Settings & Privacy Configuration Activity -->
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="@string/settings_title" />
+
+    </application>
+
+</manifest>

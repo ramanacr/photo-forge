@@ -14,6 +14,7 @@ using PhotoForge.Core.Services;
 using PhotoForge.Imaging;
 using PhotoForge.Matching;
 using PhotoForge.Metadata;
+using PhotoForge.Platform;
 using PhotoForge.Shell;
 using PhotoForge.Storage;
 using PhotoForge.Storage.Database;
@@ -343,6 +344,74 @@ public partial class MainWindow : Window
         if (OperatingSystem.IsWindows())
         {
             ShellRegistration.Unregister();
+        }
+    }
+
+    private async void CheckUpdates_Click(object sender, RoutedEventArgs e)
+    {
+        BtnCheckUpdates.IsEnabled = false;
+        TxtUpdateStatus.Text = "Checking GitHub Releases...";
+        var updateService = new GitHubUpdateService();
+
+        try
+        {
+            var update = await updateService.CheckForUpdatesAsync("1.0.0");
+            if (update == null)
+            {
+                TxtUpdateStatus.Text = "Unable to reach GitHub Releases. Please check network connection.";
+                BtnCheckUpdates.IsEnabled = true;
+                return;
+            }
+
+            if (!update.IsUpdateAvailable)
+            {
+                TxtUpdateStatus.Text = $"PhotoForge is up to date (v{update.CurrentVersion}).";
+                BtnCheckUpdates.IsEnabled = true;
+                return;
+            }
+
+            TxtUpdateStatus.Text = $"Update found: v{update.LatestVersion}!";
+            var msg = $"A new version of PhotoForge is available: v{update.LatestVersion}\n\n{update.ReleaseTitle}\n\nWould you like to download and install this update now?";
+            var res = MessageBox.Show(msg, "PhotoForge Update Available", MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+            if (res == MessageBoxResult.Yes)
+            {
+                PrgUpdate.Visibility = Visibility.Visible;
+                PrgUpdate.Value = 0;
+                TxtUpdateStatus.Text = "Downloading update installer...";
+
+                var progress = new Progress<double>(p =>
+                {
+                    Dispatcher.Invoke(() => PrgUpdate.Value = p * 100);
+                });
+
+                var file = await updateService.DownloadUpdateAsync(update, progress);
+                TxtUpdateStatus.Text = "Verifying cryptographic checksum...";
+
+                bool verified = await updateService.VerifyDownloadedUpdateAsync(file, update.ExpectedSha256 ?? "");
+                if (!verified)
+                {
+                    MessageBox.Show("Security Verification Failed: The downloaded update does not match the official SHA-256 release checksum.", "Verification Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                    TxtUpdateStatus.Text = "Checksum verification failed.";
+                    PrgUpdate.Visibility = Visibility.Collapsed;
+                    BtnCheckUpdates.IsEnabled = true;
+                    return;
+                }
+
+                TxtUpdateStatus.Text = "Launching installer...";
+                updateService.ApplyUpdateAndRestart(file, silent: false);
+            }
+            else
+            {
+                BtnCheckUpdates.IsEnabled = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Update error: {ex.Message}", "Update Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            TxtUpdateStatus.Text = "Error during update check.";
+            BtnCheckUpdates.IsEnabled = true;
+            PrgUpdate.Visibility = Visibility.Collapsed;
         }
     }
 }
