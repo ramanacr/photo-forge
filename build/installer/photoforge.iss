@@ -1,6 +1,6 @@
 ; PhotoForge Inno Setup Script
 #define MyAppName "PhotoForge"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "PhotoForge Team"
 #define MyAppURL "https://github.com/ramanacr/photo-forge"
 #define MyAppExeName "PhotoForge.Desktop.exe"
@@ -44,3 +44,5 @@ Filename: "{app}\PhotoForge.Cli.exe"; Parameters: "--register-shell"; Flags: run
 
 [UninstallRun]
 Filename: "{app}\PhotoForge.Cli.exe"; Parameters: "--unregister-shell"; Flags: runhidden
+
+

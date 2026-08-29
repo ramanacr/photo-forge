@@ -1,19 +1,12 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <LangVersion>13.0</LangVersion>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <Deterministic>true</Deterministic>
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <Authors>PhotoForge Team</Authors>
-    <Company>PhotoForge</Company>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
     <Product>PhotoForge</Product>
-    <Description>Offline-first photo metadata continuity and format-conversion platform for Windows and Android.</Description>
-    <Copyright>Copyright © 2026 PhotoForge. All rights reserved.</Copyright>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Company>PhotoForge Project</Company>
+    <Authors>Ramana Reddy Chamakura</Authors>
+    <Copyright>Copyright © 2026 PhotoForge Contributors</Copyright>
+    <RepositoryUrl>https://github.com/ramanacr/photo-forge</RepositoryUrl>
   </PropertyGroup>
 </Project>
