@@ -150,6 +150,14 @@ Release artifacts will be generated in `build/dist/`:
 
 ---
 
+## 📚 Documentation & Guides
+
+- **[Store Publishing Guide](docs/STORE_PUBLISHING_GUIDE.md):** Complete step-by-step instructions for Google Play Store (AAB) and Microsoft Store (MSIX / Win32) publishing.
+- **[Branding & Visual Identity Guidelines](docs/branding/BRANDING.md):** Official brand assets, color tokens, and multi-platform icon suite inventory.
+- **[Privacy Policy](docs/PRIVACY.md):** Formal privacy documentation and zero-telemetry offline declaration.
+
+---
+
 ## 📄 License
 
 MIT License. See [LICENSE](LICENSE) for details.
