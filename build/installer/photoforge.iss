@@ -18,6 +18,7 @@ DisableProgramGroupPage=yes
 OutputBaseFilename=PhotoForge-Inno-Setup-v{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
+SetupIconFile=..\..\apps\PhotoForge.Desktop\app.ico
 WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=lowest

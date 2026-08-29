@@ -8,6 +8,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>PhotoForge-Setup-v1.0.0-x64</AssemblyName>
     <RootNamespace>PhotoForge.Installer</RootNamespace>
+    <ApplicationIcon>app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
@@ -21,6 +22,8 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Payload.zip" Condition="Exists('Payload.zip')" />
+    <Resource Include="Resources\Slides\*.jpg" />
+    <Resource Include="app.ico" />
   </ItemGroup>
 
 </Project>

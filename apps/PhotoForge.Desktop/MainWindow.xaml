@@ -5,6 +5,7 @@
         Height="760" Width="1180"
         MinHeight="600" MinWidth="900"
         WindowStartupLocation="CenterScreen"
+        Icon="app.ico"
         Background="{StaticResource BgDark}"
         Foreground="{StaticResource TextPrimary}"
         FontFamily="Segoe UI Variable Text, Segoe UI, sans-serif">
