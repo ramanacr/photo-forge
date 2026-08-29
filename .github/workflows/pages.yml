@@ -1,0 +1,53 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'website/**'
+      - '.github/workflows/pages.yml'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Prepare Versioned Download Binaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p website/downloads/1.1.0/x64
+          # Download release binary from GitHub Release v1.1.0 into Pages artifact for zero-redirect direct serving
+          gh release download v1.1.0 --repo ${{ github.repository }} --dir website/downloads/1.1.0/x64 --pattern "PhotoForge-Setup-*.exe"
+          gh release download v1.1.0 --repo ${{ github.repository }} --dir website/downloads/1.1.0 --pattern "SHA256SUMS.txt" || true
+          ls -lah website/downloads/1.1.0/x64
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'website'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhotoForge — Photo Metadata Continuity & HEIC/WebP Studio</title>
+  <meta name="description" content="Offline-first photo metadata continuity & format conversion platform for Windows and Android. Edit freely. Keep everything.">
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <style>
+    :root {
+      --bg-primary: #0b1120;
+      --bg-secondary: #1e293b;
+      --bg-card: #162032;
+      --accent: #38bdf8;
+      --accent-gradient: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #ec4899 100%);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-main);
+      text-decoration: none;
+    }
+    .logo img { width: 40px; height: 40px; border-radius: 8px; }
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--accent); }
+    .hero {
+      text-align: center;
+      padding: 4rem 1.5rem 3rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 1rem;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 9999px;
+      color: var(--accent);
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: 3.25rem;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 1.25rem;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      margin-bottom: 2.5rem;
+    }
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.75rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #0284c7;
+      color: white;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+    }
+    .btn-primary:hover { background: #0369a1; }
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--border); }
+    .preview {
+      max-width: 1000px;
+      margin: 3rem auto 0;
+      padding: 0 1rem;
+    }
+    .preview img {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    }
+    .features {
+      max-width: 1200px;
+      margin: 6rem auto 3rem;
+      padding: 0 1.5rem;
+    }
+    .features h2 {
+      text-align: center;
+      font-size: 2.25rem;
+      margin-bottom: 3rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+    }
+    .card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+      color: var(--accent);
+    }
+    .card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-top: 5rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="#" class="logo">
+      <img src="assets/icon-128x128.png" alt="PhotoForge Logo">
+      PhotoForge
+    </a>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="downloads/">Downloads</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="https://github.com/ramanacr/photo-forge" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="badge">Version 1.1.0 Released — 100% Offline & Free</div>
+    <h1>Photo Metadata Continuity & Modern Format Studio</h1>
+    <p>Restore lost camera EXIF, lens specs, and GPS data in edited photos by matching back to originals. Convert to HEIC & WebP with 50% savings while preserving full provenance.</p>
+    <div class="btn-group">
+      <a href="downloads/1.1.0/x64/PhotoForge-Setup-v1.1.0-x64.exe" class="btn btn-primary">
+        ⬇ Download Windows Setup (v1.1.0 x64)
+      </a>
+      <a href="downloads/" class="btn btn-secondary">
+        📦 All Downloads & Android
+      </a>
+    </div>
+  </section>
+
+  <section class="preview">
+    <img src="assets/photoforge_feature_graphic.jpg" alt="PhotoForge Desktop Preview">
+  </section>
+
+  <section id="features" class="features">
+    <h2>Built For Uncompromised Quality & Privacy</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>🛡️ Source Immutability (INV-01)</h3>
+        <p>Camera originals are opened strictly read-only and fingerprinted with SHA-256 before and after operations. Your raw shots are never modified in place.</p>
+      </div>
+      <div class="card">
+        <h3>🔍 Multi-Signal Candidate Matching</h3>
+        <p>Matches edited images back to source captures using filename edit distance, timestamps, aspect ratios, perceptual visual hashing (dHash), and EXIF remnants.</p>
+      </div>
+      <div class="card">
+        <h3>🔒 Granular GPS Privacy Engine</h3>
+        <p>Configurable privacy levels: KeepExact, Round coordinates to a 1km fuzzy radius buffer for privacy, or Remove GPS metadata entirely.</p>
+      </div>
+      <div class="card">
+        <h3>💎 HEIC & WebP Modern Format Studio</h3>
+        <p>Batch convert photos with up to 50% storage reduction while maintaining 100% metadata continuity and color profiles.</p>
+      </div>
+      <div class="card">
+        <h3>🌐 100% Offline & Zero Telemetry</h3>
+        <p>Zero cloud dependencies, zero analytics, and zero tracking. Android app requires zero network permissions.</p>
+      </div>
+      <div class="card">
+        <h3>💻 Native Windows & Android Apps</h3>
+        <p>Modern Fluent dark WPF desktop suite with context menu integration, full-featured CLI tool, and Scoped Storage Android app.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 PhotoForge Project / RRC Labs. Distributed under the MIT License.</p>
+    <p style="margin-top: 0.5rem;"><a href="privacy.html">Privacy Policy</a> • <a href="https://github.com/ramanacr/photo-forge">GitHub Repository</a> • <a href="downloads/">Direct Downloads</a></p>
+  </footer>
+</body>
+</html>

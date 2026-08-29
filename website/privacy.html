@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhotoForge Privacy Policy</title>
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <style>
+    :root {
+      --bg-primary: #0b1120;
+      --bg-card: #162032;
+      --accent: #38bdf8;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      line-height: 1.7;
+      padding: 3rem 1.5rem;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2.5rem;
+    }
+    h1 { font-size: 2.25rem; margin-bottom: 0.5rem; color: var(--accent); }
+    h2 { font-size: 1.4rem; margin-top: 2rem; margin-bottom: 0.75rem; color: #f1f5f9; }
+    p, ul { color: var(--text-muted); margin-bottom: 1.25rem; }
+    ul { padding-left: 1.5rem; }
+    li { margin-bottom: 0.5rem; }
+    a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="./">← Back to PhotoForge</a>
+    <h1 style="margin-top: 1rem;">PhotoForge Privacy Policy</h1>
+    <p><strong>Effective Date:</strong> August 2026</p>
+
+    <h2>1. Absolute Local Privacy & Zero Telemetry</h2>
+    <p>PhotoForge does not collect, store, transmit, or monetize any personal information, telemetry, analytics, device identifiers, or crash logs. All photo analysis and metadata operations run strictly on your local machine.</p>
+
+    <h2>2. Zero Internet Access Required</h2>
+    <p>The PhotoForge Android application deliberately requests <strong>zero network permissions</strong> (<code>android.permission.INTERNET</code> is not declared). The Windows application does not make outbound internet requests except when you manually click "Check for Updates" to query the latest release version on GitHub.</p>
+
+    <h2>3. Source File Immutability</h2>
+    <p>PhotoForge adheres to invariant <code>INV-01</code>: original camera photos are opened in strictly read-only mode and are never modified in place.</p>
+
+    <h2>4. Granular GPS Privacy Controls</h2>
+    <p>PhotoForge allows users to retain exact GPS coordinates, fuzz coordinates to a ~1 km radius buffer for privacy, or remove location tags entirely.</p>
+
+    <h2>5. Contact & Open Source</h2>
+    <p>PhotoForge is open source software. The complete codebase is publicly auditable at <a href="https://github.com/ramanacr/photo-forge">github.com/ramanacr/photo-forge</a>.</p>
+  </div>
+</body>
+</html>
