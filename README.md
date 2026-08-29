@@ -1,4 +1,10 @@
-# 📸 PhotoForge
+<p align="center">
+  <img src="docs/branding/photoforge_banner.jpg" alt="PhotoForge Hero Banner" width="100%" />
+</p>
+
+<p align="center">
+  <img src="docs/branding/photoforge_logo.jpg" alt="PhotoForge Logo" width="120" />
+</p>
 
 <p align="center">
   <strong>Offline-first Photo Metadata Continuity & Modern Format Conversion Platform for Windows & Android</strong>

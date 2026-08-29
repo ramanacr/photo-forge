@@ -16,8 +16,8 @@ New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 
-# 1. Publish Windows x64 Standalone Desktop
-Write-Host "`n[1/5] Publishing Windows x64 Desktop Application..." -ForegroundColor Yellow
+# 1. Publish Windows x64 Standalone Desktop & CLI Payload
+Write-Host "`n[1/5] Publishing Windows x64 Desktop Application & CLI..." -ForegroundColor Yellow
 $Win64Dir = "$OutputDir\PhotoForge-Windows-x64"
 dotnet publish "$RepoRoot\apps\PhotoForge.Desktop\PhotoForge.Desktop.csproj" `
     -c Release `
@@ -27,10 +27,23 @@ dotnet publish "$RepoRoot\apps\PhotoForge.Desktop\PhotoForge.Desktop.csproj" `
     -p:IncludeNativeLibrariesForSelfExtract=true `
     -o $Win64Dir
 
+# Also publish CLI tool to the same package so both Desktop and CLI are bundled
+dotnet publish "$RepoRoot\tools\PhotoForge.Cli\PhotoForge.Cli.csproj" `
+    -c Release `
+    -r win-x64 `
+    --self-contained true `
+    -p:PublishSingleFile=true `
+    -o $Win64Dir
+
+# Create Windows x64 ZIP
 Compress-Archive -Path "$Win64Dir\*" -DestinationPath "$OutputDir\PhotoForge-v$Version-Windows-x64.zip" -Force
 
-# 2. Publish Windows Native Installer EXE
-Write-Host "`n[2/5] Publishing Windows Native Setup Installer..." -ForegroundColor Yellow
+# Create Payload.zip for the Setup Installer
+$InstallerPayloadPath = "$RepoRoot\apps\PhotoForge.Installer\Payload.zip"
+Copy-Item "$OutputDir\PhotoForge-v$Version-Windows-x64.zip" $InstallerPayloadPath -Force
+
+# 2. Publish Windows Native Installer EXE with embedded Payload
+Write-Host "`n[2/5] Publishing Windows Native Setup Installer (embedding Payload.zip)..." -ForegroundColor Yellow
 $InstallerDir = "$OutputDir\PhotoForge-Installer-Build"
 dotnet publish "$RepoRoot\apps\PhotoForge.Installer\PhotoForge.Installer.csproj" `
     -c Release `
@@ -43,6 +56,9 @@ dotnet publish "$RepoRoot\apps\PhotoForge.Installer\PhotoForge.Installer.csproj"
 Copy-Item "$InstallerDir\PhotoForge-Setup-v1.0.0-x64.exe" "$OutputDir\PhotoForge-Setup-v$Version-x64.exe" -Force
 Remove-Item -Recurse -Force $InstallerDir
 Remove-Item -Recurse -Force $Win64Dir
+if (Test-Path $InstallerPayloadPath) {
+    Remove-Item -Force $InstallerPayloadPath
+}
 
 # 3. Publish Windows ARM64 Standalone Desktop
 Write-Host "`n[3/5] Publishing Windows ARM64 Desktop Application..." -ForegroundColor Yellow
@@ -58,7 +74,7 @@ dotnet publish "$RepoRoot\apps\PhotoForge.Desktop\PhotoForge.Desktop.csproj" `
 Compress-Archive -Path "$WinArm64Dir\*" -DestinationPath "$OutputDir\PhotoForge-v$Version-Windows-arm64.zip" -Force
 Remove-Item -Recurse -Force $WinArm64Dir
 
-# 4. Publish PhotoForge CLI Tool
+# 4. Publish PhotoForge CLI Tool Dedicated Zip
 Write-Host "`n[4/5] Publishing PhotoForge CLI Cross-Platform Package..." -ForegroundColor Yellow
 $CliDir = "$OutputDir\PhotoForge-CLI"
 dotnet publish "$RepoRoot\tools\PhotoForge.Cli\PhotoForge.Cli.csproj" `

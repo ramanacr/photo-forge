@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Reflection;
 using Microsoft.Win32;
 using PhotoForge.Shell;
@@ -17,20 +18,20 @@ public static class InstallerEngine
         bool addToPath,
         Action<string, double>? progressCallback = null)
     {
-        progressCallback?.Invoke("Preparing installation directory...", 0.10);
+        progressCallback?.Invoke("Preparing installation directory...", 0.05);
         if (!Directory.Exists(targetDir))
         {
             Directory.CreateDirectory(targetDir);
         }
 
         // 1. Extract application payload
-        progressCallback?.Invoke("Extracting application binaries...", 0.30);
-        ExtractPayload(targetDir);
+        progressCallback?.Invoke("Extracting application binaries...", 0.15);
+        ExtractPayload(targetDir, progressCallback);
 
         // 2. Register Shell Context Menu if requested
         if (registerShell)
         {
-            progressCallback?.Invoke("Registering Windows Explorer integration...", 0.60);
+            progressCallback?.Invoke("Registering Windows Explorer integration...", 0.75);
             try
             {
                 var desktopExe = Path.Combine(targetDir, "PhotoForge.Desktop.exe");
@@ -42,7 +43,7 @@ public static class InstallerEngine
         // 3. Create Start Menu and Desktop Shortcuts
         if (createShortcuts)
         {
-            progressCallback?.Invoke("Creating application shortcuts...", 0.80);
+            progressCallback?.Invoke("Creating application shortcuts...", 0.85);
             try
             {
                 CreateShortcuts(targetDir);
@@ -61,38 +62,77 @@ public static class InstallerEngine
         }
 
         // 5. Create Windows Add/Remove Programs Uninstall Entry
-        progressCallback?.Invoke("Registering uninstaller in Windows...", 0.90);
-        CreateUninstaller(targetDir);
+        progressCallback?.Invoke("Registering uninstaller in Windows...", 0.95);
+        try
+        {
+            CreateUninstaller(targetDir);
+        }
+        catch { }
 
         progressCallback?.Invoke("Installation completed successfully!", 1.0);
     }
 
-    private static void ExtractPayload(string targetDir)
+    private static void ExtractPayload(string targetDir, Action<string, double>? progressCallback)
     {
         var asm = Assembly.GetExecutingAssembly();
-        var resourceName = "PhotoForge.Installer.Payload.zip";
+        var resourceNames = asm.GetManifestResourceNames();
+        var payloadName = resourceNames.FirstOrDefault(n => n.EndsWith("Payload.zip", StringComparison.OrdinalIgnoreCase));
 
-        using var stream = asm.GetManifestResourceStream(resourceName);
-        if (stream != null)
+        if (!string.IsNullOrEmpty(payloadName))
         {
-            using var archive = new ZipArchive(stream);
-            archive.ExtractToDirectory(targetDir, overwriteFiles: true);
-        }
-        else
-        {
-            // Fallback: If running in dev/local build, copy sibling output files
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var files = Directory.GetFiles(baseDir, "*.*", SearchOption.AllDirectories);
-            foreach (var file in files)
+            using var stream = asm.GetManifestResourceStream(payloadName);
+            if (stream != null)
             {
-                if (file.EndsWith("PhotoForge-Setup-v1.0.0-x64.exe", StringComparison.OrdinalIgnoreCase))
-                    continue;
+                using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
+                var totalEntries = archive.Entries.Count;
+                int currentEntry = 0;
 
-                var rel = Path.GetRelativePath(baseDir, file);
-                var dest = Path.Combine(targetDir, rel);
-                Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
-                File.Copy(file, dest, true);
+                foreach (var entry in archive.Entries)
+                {
+                    currentEntry++;
+                    var entryProgress = 0.15 + (0.55 * ((double)currentEntry / Math.Max(1, totalEntries)));
+                    progressCallback?.Invoke($"Extracting {entry.Name}...", entryProgress);
+
+                    if (string.IsNullOrEmpty(entry.Name))
+                    {
+                        var dirPath = Path.Combine(targetDir, entry.FullName);
+                        Directory.CreateDirectory(dirPath);
+                        continue;
+                    }
+
+                    var destPath = Path.Combine(targetDir, entry.FullName);
+                    var destDir = Path.GetDirectoryName(destPath);
+                    if (!string.IsNullOrEmpty(destDir) && !Directory.Exists(destDir))
+                    {
+                        Directory.CreateDirectory(destDir);
+                    }
+
+                    entry.ExtractToFile(destPath, overwrite: true);
+                }
+                return;
             }
+        }
+
+        // Development / Sibling fallback: look for PhotoForge.Desktop.exe in current directory
+        var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+        var directFiles = Directory.GetFiles(baseDir, "*.*", SearchOption.TopDirectoryOnly);
+        var filteredFiles = directFiles.Where(f =>
+            !f.EndsWith("PhotoForge-Setup-v1.0.0-x64.exe", StringComparison.OrdinalIgnoreCase) &&
+            !f.EndsWith("PhotoForge.Installer.exe", StringComparison.OrdinalIgnoreCase)).ToList();
+
+        if (filteredFiles.Count == 0)
+        {
+            throw new InvalidOperationException("Embedded installer payload was not found inside the setup executable.");
+        }
+
+        for (int i = 0; i < filteredFiles.Count; i++)
+        {
+            var file = filteredFiles[i];
+            var progress = 0.15 + (0.55 * ((double)(i + 1) / filteredFiles.Count));
+            progressCallback?.Invoke($"Copying {Path.GetFileName(file)}...", progress);
+
+            var dest = Path.Combine(targetDir, Path.GetFileName(file));
+            File.Copy(file, dest, true);
         }
     }
 
@@ -154,8 +194,7 @@ echo Uninstalling PhotoForge...
 taskkill /F /IM PhotoForge.Desktop.exe >nul 2>&1
 taskkill /F /IM photoforge.exe >nul 2>&1
 
-reg delete ""HKCU\Software\Classes\*\shell\PhotoForge"" /f >nul 2>&1
-reg delete ""HKCU\Software\Classes\Directory\shell\PhotoForge"" /f >nul 2>&1
+reg delete ""HKCU\Software\Classes\SystemFileAssociations\image\shell\PhotoForge"" /f >nul 2>&1
 reg delete ""HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\PhotoForge"" /f >nul 2>&1
 
 del /Q ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "PhotoForge.lnk")}"" >nul 2>&1
