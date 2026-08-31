@@ -61,3 +61,10 @@ build/dist/
 *.db
 *.db-shm
 *.db-wal
+
+# Android & Gradle
+.gradle/
+build/
+local.properties
+*.apk
+*.aab

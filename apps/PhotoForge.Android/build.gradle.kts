@@ -1,11 +1,7 @@
 plugins {
-    id("com.android.application") version "8.5.2" apply false
-    id("org.jetbrains.kotlin.android") version "2.0.0" apply false
+    id("com.android.application") version "8.5.2"
+    id("org.jetbrains.kotlin.android") version "2.0.0"
 }
-
-// Module-level configuration
-apply(plugin = "com.android.application")
-apply(plugin = "org.jetbrains.kotlin.android")
 
 android {
     namespace = "com.photoforge.app"
@@ -15,8 +11,8 @@ android {
         applicationId = "com.photoforge.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 10101
-        versionName = "1.1.1"
+        versionCode = 10102
+        versionName = "1.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

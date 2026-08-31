@@ -1,6 +1,6 @@
 ; PhotoForge Inno Setup Script
 #define MyAppName "PhotoForge"
-#define MyAppVersion "1.1.1"
+#define MyAppVersion "1.1.2"
 #define MyAppPublisher "PhotoForge Team"
 #define MyAppURL "https://github.com/ramanacr/photo-forge"
 #define MyAppExeName "PhotoForge.Desktop.exe"

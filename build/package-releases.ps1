@@ -135,6 +135,20 @@ if (-not (Test-Path $GradleWrapper)) {
 }
 
 if (Test-Path $GradleWrapper) {
+    # Ensure valid JAVA_HOME and ANDROID_HOME
+    if (-not (Test-Path "$env:JAVA_HOME\bin\java.exe")) {
+        if (Test-Path "C:\Program Files\Java\jdk-21\bin\java.exe") {
+            $env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
+        } elseif (Test-Path "C:\Program Files\Java\jdk-17\bin\java.exe") {
+            $env:JAVA_HOME = "C:\Program Files\Java\jdk-17"
+        }
+    }
+    if (-not $env:ANDROID_HOME -or -not (Test-Path $env:ANDROID_HOME)) {
+        if (Test-Path "$env:LOCALAPPDATA\Android\Sdk") {
+            $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
+        }
+    }
+
     Write-Host "  Building Android APK via Gradle..." -ForegroundColor Gray
     & $GradleWrapper -p $AndroidProjectDir assembleRelease --no-daemon
 
