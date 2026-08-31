@@ -56,6 +56,10 @@ if (Test-Path "$RepoRoot\apps\PhotoForge.Desktop\app.ico") {
     Copy-Item "$RepoRoot\apps\PhotoForge.Desktop\app.ico" "$Win64Dir\app.ico" -Force
 }
 
+# Remove publish artifacts that shouldn't ship in the installer
+Write-Host "  Cleaning up publish artifacts..." -ForegroundColor Gray
+Get-ChildItem -Path $Win64Dir -Include *.pdb, *.xml, *.deps.json, *.runtimeconfig.json -Recurse | Remove-Item -Force
+
 # Create Windows x64 ZIP
 Compress-Archive -Path "$Win64Dir\*" -DestinationPath "$OutputDir\PhotoForge-v$Version-Windows-x64.zip" -Force
 
@@ -98,6 +102,9 @@ dotnet publish "$RepoRoot\apps\PhotoForge.Desktop\PhotoForge.Desktop.csproj" `
     -p:IncludeNativeLibrariesForSelfExtract=true `
     -o $WinArm64Dir
 
+# Remove publish artifacts that shouldn't ship
+Get-ChildItem -Path $WinArm64Dir -Include *.pdb, *.xml, *.deps.json, *.runtimeconfig.json -Recurse | Remove-Item -Force
+
 Compress-Archive -Path "$WinArm64Dir\*" -DestinationPath "$OutputDir\PhotoForge-v$Version-Windows-arm64.zip" -Force
 Remove-Item -Recurse -Force $WinArm64Dir
 
@@ -111,18 +118,47 @@ dotnet publish "$RepoRoot\tools\PhotoForge.Cli\PhotoForge.Cli.csproj" `
     -p:PublishSingleFile=true `
     -o $CliDir
 
+# Remove publish artifacts that shouldn't ship
+Get-ChildItem -Path $CliDir -Include *.pdb, *.xml, *.deps.json, *.runtimeconfig.json -Recurse | Remove-Item -Force
+
 Compress-Archive -Path "$CliDir\*" -DestinationPath "$OutputDir\PhotoForge-v$Version-CLI-win-x64.zip" -Force
 Remove-Item -Recurse -Force $CliDir
 
 # 5. Package Android Application
-Write-Host "`n[5/5] Packaging PhotoForge Android Package..." -ForegroundColor Yellow
+Write-Host "`n[5/5] Packaging PhotoForge Android Application..." -ForegroundColor Yellow
+$AndroidProjectDir = "$RepoRoot\apps\PhotoForge.Android"
+
+# Build APK via Gradle
+$GradleWrapper = "$AndroidProjectDir\gradlew.bat"
+if (-not (Test-Path $GradleWrapper)) {
+    $GradleWrapper = "$AndroidProjectDir\gradlew"
+}
+
+if (Test-Path $GradleWrapper) {
+    Write-Host "  Building Android APK via Gradle..." -ForegroundColor Gray
+    & $GradleWrapper -p $AndroidProjectDir assembleRelease --no-daemon
+
+    # Locate the built APK
+    $ApkFile = Get-ChildItem -Path "$AndroidProjectDir\build\outputs\apk\release" -Filter "*.apk" -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($ApkFile) {
+        Copy-Item $ApkFile.FullName "$OutputDir\PhotoForge-v$Version.apk" -Force
+        Write-Host "  ✔ APK built: PhotoForge-v$Version.apk" -ForegroundColor Green
+    } else {
+        Write-Host "  ⚠ Gradle build completed but no APK found in build/outputs/apk/release/" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "  ⚠ Gradle wrapper not found. Skipping APK build." -ForegroundColor Yellow
+    Write-Host "    To build the APK, ensure gradlew.bat exists in apps/PhotoForge.Android/" -ForegroundColor Yellow
+    Write-Host "    You can generate it by running 'gradle wrapper' inside the Android project." -ForegroundColor Yellow
+}
+
+# Also package Android source + .NET bridge assemblies as a zip for reference
 $AndroidDistDir = "$OutputDir\PhotoForge-Android"
 $AndroidSrcDir = "$AndroidDistDir\src"
 New-Item -ItemType Directory -Force -Path $AndroidSrcDir | Out-Null
-Copy-Item -Recurse -Path "$RepoRoot\apps\PhotoForge.Android\*" -Destination $AndroidSrcDir -Force
+Copy-Item -Recurse -Path "$AndroidProjectDir\*" -Destination $AndroidSrcDir -Force -Exclude @("build", ".gradle", "bin", "obj")
 
-# Build .NET Android bridge / core assemblies
-dotnet publish "$RepoRoot\apps\PhotoForge.Android\PhotoForge.Android.csproj" `
+dotnet publish "$AndroidProjectDir\PhotoForge.Android.csproj" `
     -c Release `
     -o "$AndroidDistDir\binaries"
 

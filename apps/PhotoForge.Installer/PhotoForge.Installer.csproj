@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <AssemblyName>PhotoForge-Setup-v1.1.0-x64</AssemblyName>
+    <AssemblyName>PhotoForge-Setup-v1.1.1-x64</AssemblyName>
     <RootNamespace>PhotoForge.Installer</RootNamespace>
     <ApplicationIcon>app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>

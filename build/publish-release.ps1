@@ -89,6 +89,7 @@ Write-Host "`nPublishing GitHub Release $tag..." -ForegroundColor Cyan
 $distDir = "$PSScriptRoot\dist"
 $assets = @(
     "$distDir\PhotoForge-Setup-$tag-x64.exe",
+    "$distDir\PhotoForge-$tag.apk",
     "$distDir\PhotoForge-$tag-Android.zip",
     "$distDir\PhotoForge-$tag-CLI-win-x64.zip",
     "$distDir\PhotoForge-$tag-Windows-arm64.zip",

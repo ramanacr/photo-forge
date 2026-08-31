@@ -1,7 +1,7 @@
 <Window x:Class="PhotoForge.Installer.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="PhotoForge Setup v1.1.0" Height="580" Width="760"
+        Title="PhotoForge Setup v1.1.1" Height="580" Width="760"
         WindowStartupLocation="CenterScreen"
         Icon="app.ico"
         Background="{StaticResource BgBrush}"
