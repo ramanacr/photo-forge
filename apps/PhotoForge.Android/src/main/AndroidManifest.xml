@@ -42,11 +42,35 @@
             </intent-filter>
         </activity>
 
+        <!-- Metadata Inspector Activity -->
+        <activity
+            android:name=".InspectActivity"
+            android:exported="false"
+            android:label="@string/inspect_title" />
+
+        <!-- Format Conversion Studio Activity -->
+        <activity
+            android:name=".ConvertActivity"
+            android:exported="false"
+            android:label="@string/convert_title" />
+
+        <!-- Continuity & Integrity Verifier Activity -->
+        <activity
+            android:name=".VerifyActivity"
+            android:exported="false"
+            android:label="@string/verify_title" />
+
         <!-- Interactive Candidate Match Review Activity -->
         <activity
             android:name=".MatchReviewActivity"
             android:exported="false"
             android:label="@string/match_review_title" />
+
+        <!-- Batch Album Studio Activity -->
+        <activity
+            android:name=".BatchActivity"
+            android:exported="false"
+            android:label="@string/batch_title" />
 
         <!-- Side-by-Side Metadata Diff Inspector Activity -->
         <activity

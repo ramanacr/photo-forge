@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_dark">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface_dark">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="?attr/homeAsUpIndicator"
+            app:title="⚙️ Settings &amp; Privacy"
+            app:titleTextColor="@color/text_primary" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- GPS Privacy Policy Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@color/card_dark"
+                app:cardCornerRadius="12dp"
+                app:strokeColor="@color/border_dark"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📍 GPS Privacy Policy"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Control how location coordinates are transferred to edited images."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                    <RadioGroup
+                        android:id="@+id/rgGpsPolicy"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp">
+
+                        <RadioButton
+                            android:id="@+id/rbGpsExact"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Keep Exact GPS (Full Precision)"
+                            android:textColor="@color/text_primary" />
+
+                        <RadioButton
+                            android:id="@+id/rbGpsRound"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Round GPS (~1km Privacy Obscuration)"
+                            android:textColor="@color/text_primary" />
+
+                        <RadioButton
+                            android:id="@+id/rbGpsRemove"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Completely Strip GPS Location Tags"
+                            android:textColor="@color/text_primary" />
+
+                        <RadioButton
+                            android:id="@+id/rbGpsWarning"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Copy Exact with Warning Notice"
+                            android:textColor="@color/text_primary" />
+                    </RadioGroup>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Matching Preferences Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@color/card_dark"
+                app:cardCornerRadius="12dp"
+                app:strokeColor="@color/border_dark"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🎯 Candidate Matching Preferences"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/swAutoAccept"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Auto-Accept High Confidence Matches (≥75%)"
+                        android:textColor="@color/text_primary" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/swPreserveKeywords"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Preserve Target Keywords on Merge"
+                        android:textColor="@color/text_primary" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Security & Invariants Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@color/card_dark"
+                app:cardCornerRadius="12dp"
+                app:strokeColor="@color/border_dark"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔒 Security &amp; Architectural Invariants"
+                        android:textColor="@color/accent_green"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="• INV-01: Original camera photos are strictly read-only and fingerprinted with SHA-256.\n• INV-02: PF-MIG idempotency markers prevent duplicate processing.\n• INV-03: Independent verification re-reads images from disk before commit.\n• INV-06: 100% offline guarantee. Zero internet permissions requested."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

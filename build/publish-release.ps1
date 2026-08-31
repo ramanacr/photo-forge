@@ -45,12 +45,20 @@ PhotoForge is an offline-first photo metadata continuity and modern format-conve
 - **Standalone CLI (`photoforge.exe`):** Scriptable cross-platform tool with `--json`, `restore`, `convert`, `verify`, `inspect`, `match`, and `update` commands.
 - **Inno Setup Script (`photoforge.iss`):** Compilable Inno Setup installer script.
 
-### 📱 Android Application & Scoped Storage Engine
-- **Android Application Suite (`com.photoforge.app`):** Full Material 3 dashboard, Scoped Storage SAF streaming, Android System Share Sheet receiver (`SEND`, `SEND_MULTIPLE`, `image/*`), and **zero network permissions** for 100% offline security.
+### 📱 Android Application Suite — Full CLI Feature Parity
+- **🔍 Metadata Inspector (`InspectActivity`):** Complete browser for EXIF (Camera, Lens, ISO, F-number, Shutter), GPS Location & Elevation, IPTC Keywords, and PhotoForge Provenance markers.
+- **🔄 Format Conversion Studio (`ConvertActivity`):** Transcode images to WebP (Lossless/Lossy), JPEG, or PNG with quality presets while preserving all metadata.
+- **🛡️ Continuity & Integrity Verifier (`VerifyActivity`):** Independent verifier testing image stream decodability, pixel dimension validity, EXIF tag preservation, and migration markers.
+- **🎯 Candidate Match Finder (`MatchReviewActivity`):** Multi-signal matching engine evaluating Filename Levenshtein & suffix stripping, capture timestamp delta, aspect ratio, camera remnants, and 64-bit dHash perceptual similarity. Shows ranked candidates with confidence bands (Auto-Accept, Suggested, Review Required) and one-tap restore.
+- **📁 Batch Album Studio (`BatchActivity`):** Batch studio allowing multiple edited photos to be matched against original camera photos, displaying live progress, per-item status badges, and batch summary metrics.
+- **🔍 Metadata Diff Inspector (`DiffInspectorActivity`):** Categorized provenance tag diff viewer showing Copied from Original (green), Preserved from Target (blue), and Privacy Warnings (yellow).
+- **⚙️ Persistent Preferences (`SettingsActivity`):** Configure GPS privacy policies, default formats, quality presets, and auto-accept thresholds.
+- **📲 Android Share Sheet Integration:** Send images directly from Google Photos or your Gallery app to PhotoForge for 1-tap restore.
+- **🔒 100% Offline & Local:** Zero internet permissions, zero cloud dependencies, zero telemetry.
 
 ### 🛡️ Critical Invariant Guarantees
 - **`INV-01 (Source Immutability)`:** Original camera photos are opened strictly read-only and fingerprinted with SHA-256 before and after operations.
-- **`INV-02 (Idempotency)`:** Namespaced migration markers (`pf:PhotoForgeMigration`) eliminate duplicate processing.
+- **`INV-02 (Idempotency)`:** Namespaced migration markers (`PF-MIG`) eliminate duplicate processing.
 - **`INV-03 (Independent Verification)`:** Re-reads written files directly from disk to confirm EXIF, GPS, and format readability before atomic commit.
 - **`INV-04 (No Silent Data Loss)`:** Unsupported/modified metadata tags are explicitly captured in diff records and warnings.
 - **`INV-05 (Atomic Safety)`:** Cancelled or interrupted operations leave zero corrupt files on disk.

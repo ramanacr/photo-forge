@@ -2,27 +2,25 @@ package com.photoforge.app.storage
 
 import android.content.ContentValues
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.provider.OpenableColumns
+import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
-import java.io.InputStream
 import java.security.MessageDigest
 
-/**
- * Handles Android Scoped Storage, ContentResolver streaming, temp caching, and MediaStore publishing.
- */
 class AndroidStorageBridge(private val context: Context) {
 
-    /**
-     * Streams a content:// URI into an app-private cache file for read-only inspection.
-     */
     suspend fun cacheUriToTempFile(uri: Uri, prefix: String = "pf_input_"): File = withContext(Dispatchers.IO) {
-        val tempFile = File.createTempFile(prefix, ".tmp", context.cacheDir)
+        val extension = getExtensionFromUri(uri)
+        val tempFile = File.createTempFile(prefix, extension, context.cacheDir)
         context.contentResolver.openInputStream(uri)?.use { input ->
             FileOutputStream(tempFile).use { output ->
                 input.copyTo(output)
@@ -31,9 +29,6 @@ class AndroidStorageBridge(private val context: Context) {
         tempFile
     }
 
-    /**
-     * Computes the SHA-256 fingerprint of a file to verify source immutability (INV-01).
-     */
     suspend fun computeSha256(file: File): String = withContext(Dispatchers.IO) {
         val digest = MessageDigest.getInstance("SHA-256")
         file.inputStream().use { input ->
@@ -46,9 +41,6 @@ class AndroidStorageBridge(private val context: Context) {
         digest.digest().joinToString("") { "%02x".format(it) }
     }
 
-    /**
-     * Publishes a processed photo back to the system MediaStore under Pictures/PhotoForge.
-     */
     suspend fun publishToMediaStore(
         processedFile: File,
         displayName: String,
@@ -85,5 +77,86 @@ class AndroidStorageBridge(private val context: Context) {
         }
 
         insertedUri
+    }
+
+    fun getFileName(uri: Uri): String {
+        var name = "photo_${System.currentTimeMillis()}"
+        context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (nameIndex != -1) {
+                    name = cursor.getString(nameIndex) ?: name
+                }
+            }
+        }
+        return name
+    }
+
+    fun getFileSize(uri: Uri): Long {
+        var size = 0L
+        context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+                if (sizeIndex != -1) {
+                    size = cursor.getLong(sizeIndex)
+                }
+            }
+        }
+        return size
+    }
+
+    fun listImagesFromTreeUri(treeUri: Uri): List<DocumentFile> {
+        val root = DocumentFile.fromTreeUri(context, treeUri) ?: return emptyList()
+        val results = mutableListOf<DocumentFile>()
+        collectImagesRecursive(root, results)
+        return results
+    }
+
+    private fun collectImagesRecursive(dir: DocumentFile, results: MutableList<DocumentFile>) {
+        if (!dir.isDirectory) return
+        for (file in dir.listFiles()) {
+            if (file.isDirectory) {
+                collectImagesRecursive(file, results)
+            } else if (file.isFile) {
+                val mime = file.type ?: ""
+                val name = file.name?.lowercase() ?: ""
+                if (mime.startsWith("image/") || name.endsWith(".jpg") || name.endsWith(".jpeg") ||
+                    name.endsWith(".png") || name.endsWith(".webp") || name.endsWith(".heic") ||
+                    name.endsWith(".heif") || name.endsWith(".dng") || name.endsWith(".raw")
+                ) {
+                    results.add(file)
+                }
+            }
+        }
+    }
+
+    private fun getExtensionFromUri(uri: Uri): String {
+        val mime = context.contentResolver.getType(uri)
+        return when {
+            mime?.contains("png", ignoreCase = true) == true -> ".png"
+            mime?.contains("webp", ignoreCase = true) == true -> ".webp"
+            mime?.contains("heic", ignoreCase = true) == true -> ".heic"
+            mime?.contains("heif", ignoreCase = true) == true -> ".heif"
+            else -> ".jpg"
+        }
+    }
+
+    fun createThumbnail(file: File, maxDim: Int = 256): Bitmap? {
+        return try {
+            val options = BitmapFactory.Options().apply {
+                inJustDecodeBounds = true
+            }
+            BitmapFactory.decodeFile(file.absolutePath, options)
+            var inSampleSize = 1
+            while (options.outWidth / (inSampleSize * 2) >= maxDim && options.outHeight / (inSampleSize * 2) >= maxDim) {
+                inSampleSize *= 2
+            }
+            val decodeOptions = BitmapFactory.Options().apply {
+                this.inSampleSize = inSampleSize
+            }
+            BitmapFactory.decodeFile(file.absolutePath, decodeOptions)
+        } catch (e: Exception) {
+            null
+        }
     }
 }

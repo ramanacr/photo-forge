@@ -4,15 +4,27 @@
     <string name="match_review_title">Candidate Match Review</string>
     <string name="diff_inspector_title">Metadata Diff Inspector</string>
     <string name="settings_title">PhotoForge Settings</string>
-    
+    <string name="inspect_title">Metadata Inspector</string>
+    <string name="convert_title">Format Converter</string>
+    <string name="verify_title">Continuity Verifier</string>
+    <string name="batch_title">Batch Album Studio</string>
+
     <string name="select_edited_photos">Select Edited Photos</string>
     <string name="select_originals_folder">Select Originals Folder</string>
     <string name="btn_restore">⚡ Restore Metadata</string>
     <string name="btn_convert_heic">🔄 Convert to HEIC</string>
     <string name="btn_batch">📁 Run Batch Restore</string>
-    
+    <string name="btn_inspect">🔍 Inspect Metadata</string>
+    <string name="btn_verify">🛡️ Verify Integrity</string>
+
     <string name="gps_policy_exact">Keep Exact GPS (5 decimals)</string>
     <string name="gps_policy_round">Round GPS (1km privacy blur)</string>
     <string name="gps_policy_remove">Completely Strip GPS</string>
     <string name="gps_policy_warning">Copy with explicit warning</string>
+
+    <string name="quality_lossless">Lossless (100%)</string>
+    <string name="quality_very_high">Very High (95%)</string>
+    <string name="quality_high">High (85%)</string>
+    <string name="quality_balanced">Balanced (75%)</string>
+    <string name="quality_small">Small (60%)</string>
 </resources>

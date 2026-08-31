@@ -1,41 +1,57 @@
 package com.photoforge.app
 
 import android.os.Bundle
-import android.widget.RadioButton
-import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.photoforge.app.databinding.ActivitySettingsBinding
+import com.photoforge.app.model.GpsPrivacyPolicy
+import com.photoforge.app.storage.PreferencesManager
 
 class SettingsActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivitySettingsBinding
+    private lateinit var prefsManager: PreferencesManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        val radioGroup = RadioGroup(this).apply {
-            setPadding(32, 32, 32, 32)
-        }
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        prefsManager = PreferencesManager(this)
 
-        val optExact = RadioButton(this).apply { text = "Keep Exact GPS (5 decimal precision)"; id = 1; isChecked = true }
-        val optRound = RadioButton(this).apply { text = "Round GPS (1km privacy blur)"; id = 2 }
-        val optRemove = RadioButton(this).apply { text = "Completely Strip GPS metadata"; id = 3 }
-        val optWarn = RadioButton(this).apply { text = "Copy with warning"; id = 4 }
+        binding.toolbar.setNavigationOnClickListener { finish() }
 
-        radioGroup.addView(optExact)
-        radioGroup.addView(optRound)
-        radioGroup.addView(optRemove)
-        radioGroup.addView(optWarn)
+        loadSettings()
 
-        radioGroup.setOnCheckedChangeListener { _, checkedId ->
+        binding.rgGpsPolicy.setOnCheckedChangeListener { _, checkedId ->
             val policy = when (checkedId) {
-                1 -> "Keep Exact"
-                2 -> "Round (1km)"
-                3 -> "Remove"
-                4 -> "CopyWithWarning"
-                else -> "Keep Exact"
+                R.id.rbGpsExact -> GpsPrivacyPolicy.KEEP_EXACT
+                R.id.rbGpsRound -> GpsPrivacyPolicy.ROUND
+                R.id.rbGpsRemove -> GpsPrivacyPolicy.REMOVE
+                R.id.rbGpsWarning -> GpsPrivacyPolicy.COPY_WITH_WARNING
+                else -> GpsPrivacyPolicy.KEEP_EXACT
             }
-            Toast.makeText(this, "GPS Privacy Policy set to: $policy", Toast.LENGTH_SHORT).show()
+            prefsManager.gpsPrivacyPolicy = policy
+            Toast.makeText(this, "GPS Privacy set to: ${policy.title}", Toast.LENGTH_SHORT).show()
         }
 
-        setContentView(radioGroup)
+        binding.swAutoAccept.setOnCheckedChangeListener { _, isChecked ->
+            prefsManager.autoAcceptConfidentMatches = isChecked
+        }
+
+        binding.swPreserveKeywords.setOnCheckedChangeListener { _, isChecked ->
+            prefsManager.preserveKeywords = isChecked
+        }
+    }
+
+    private fun loadSettings() {
+        when (prefsManager.gpsPrivacyPolicy) {
+            GpsPrivacyPolicy.KEEP_EXACT -> binding.rbGpsExact.isChecked = true
+            GpsPrivacyPolicy.ROUND -> binding.rbGpsRound.isChecked = true
+            GpsPrivacyPolicy.REMOVE -> binding.rbGpsRemove.isChecked = true
+            GpsPrivacyPolicy.COPY_WITH_WARNING -> binding.rbGpsWarning.isChecked = true
+        }
+
+        binding.swAutoAccept.isChecked = prefsManager.autoAcceptConfidentMatches
+        binding.swPreserveKeywords.isChecked = prefsManager.preserveKeywords
     }
 }

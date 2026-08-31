@@ -2,6 +2,7 @@ package com.photoforge.app
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -9,19 +10,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.photoforge.app.engine.AndroidMetadataEngine
 import com.photoforge.app.storage.AndroidStorageBridge
+import com.photoforge.app.storage.PreferencesManager
 import kotlinx.coroutines.launch
 import java.io.File
 
-/**
- * Handles Android system Share Sheet (SEND and SEND_MULTIPLE) intents from Gallery / Google Photos.
- */
 class ShareReceiverActivity : AppCompatActivity() {
 
     private lateinit var storageBridge: AndroidStorageBridge
+    private lateinit var prefsManager: PreferencesManager
     private val metadataEngine = AndroidMetadataEngine()
-    private var sharedUris = mutableListOf<Uri>()
+    private val sharedUris = mutableListOf<Uri>()
 
-    private val pickOriginalLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { origUri ->
+    private val pickOriginalLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { origUri: Uri? ->
         if (origUri != null && sharedUris.isNotEmpty()) {
             processShareRestore(sharedUris.first(), origUri)
         } else {
@@ -32,16 +32,31 @@ class ShareReceiverActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         storageBridge = AndroidStorageBridge(this)
+        prefsManager = PreferencesManager(this)
 
         when (intent?.action) {
             Intent.ACTION_SEND -> {
-                (intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))?.let { uri ->
-                    sharedUris.add(uri)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)?.let { uri ->
+                        sharedUris.add(uri)
+                    }
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)?.let { uri ->
+                        sharedUris.add(uri)
+                    }
                 }
             }
             Intent.ACTION_SEND_MULTIPLE -> {
-                intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.let { uris ->
-                    sharedUris.addAll(uris)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)?.let { uris ->
+                        sharedUris.addAll(uris)
+                    }
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.let { uris ->
+                        sharedUris.addAll(uris)
+                    }
                 }
             }
         }
@@ -67,12 +82,15 @@ class ShareReceiverActivity : AppCompatActivity() {
                 metadataEngine.copyProvenance(
                     originalFile = origTemp,
                     targetFile = editedTemp,
-                    sourceSha = origSha
+                    sourceSha = origSha,
+                    policy = prefsManager.gpsPrivacyPolicy,
+                    profileName = "share-restore-v1"
                 )
 
+                val name = storageBridge.getFileName(sharedEditedUri).substringBeforeLast(".")
                 storageBridge.publishToMediaStore(
                     processedFile = editedTemp,
-                    displayName = "restored_share_${System.currentTimeMillis()}.jpg"
+                    displayName = "restored_share_${name}.jpg"
                 )
 
                 Toast.makeText(this@ShareReceiverActivity, "✔ Restored and saved to Gallery!", Toast.LENGTH_LONG).show()
