@@ -56,6 +56,34 @@ public partial class MainWindow : Window
         {
             ChkExplorerMenu.IsChecked = ShellRegistration.IsRegistered();
         }
+
+        Loaded += (s, e) => _ = BackgroundStartupUpdateCheckAsync();
+    }
+
+    private string GetCurrentAppVersion()
+    {
+        var ver = typeof(MainWindow).Assembly.GetName().Version;
+        return ver != null ? $"{ver.Major}.{ver.Minor}.{ver.Build}" : "1.2.0";
+    }
+
+    private async Task BackgroundStartupUpdateCheckAsync()
+    {
+        try
+        {
+            var updateService = new GitHubUpdateService();
+            var update = await updateService.CheckForUpdatesAsync(GetCurrentAppVersion());
+            if (update != null && update.IsUpdateAvailable)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    TxtUpdateStatus.Text = $"🌟 New version v{update.LatestVersion} available on GitHub Releases!";
+                });
+            }
+        }
+        catch
+        {
+            // Non-blocking background check
+        }
     }
 
     private void Nav_Click(object sender, RoutedEventArgs e)
@@ -355,7 +383,8 @@ public partial class MainWindow : Window
 
         try
         {
-            var update = await updateService.CheckForUpdatesAsync("1.0.0");
+            var currentVersion = GetCurrentAppVersion();
+            var update = await updateService.CheckForUpdatesAsync(currentVersion);
             if (update == null)
             {
                 TxtUpdateStatus.Text = "Unable to reach GitHub Releases. Please check network connection.";

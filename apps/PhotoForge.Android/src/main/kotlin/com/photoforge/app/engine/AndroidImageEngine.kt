@@ -103,8 +103,15 @@ class AndroidImageEngine {
         quality: ConversionQuality
     ): Boolean = withContext(Dispatchers.IO) {
         try {
+            val upperFormat = targetFormat.uppercase()
+
+            // HEIC/HEIF requires API 28+ and uses HeifWriter instead of Bitmap.compress
+            if (upperFormat == "HEIC" || upperFormat == "HEIF") {
+                return@withContext convertToHeic(inputFile, outputFile, quality)
+            }
+
             val bitmap = BitmapFactory.decodeFile(inputFile.absolutePath) ?: return@withContext false
-            val compressFormat: Bitmap.CompressFormat = when (targetFormat.uppercase()) {
+            val compressFormat: Bitmap.CompressFormat = when (upperFormat) {
                 "WEBP" -> {
                     if (quality == ConversionQuality.LOSSLESS && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         Bitmap.CompressFormat.WEBP_LOSSLESS
@@ -122,6 +129,42 @@ class AndroidImageEngine {
             FileOutputStream(outputFile).use { out ->
                 bitmap.compress(compressFormat, quality.qualityInt, out)
             }
+            bitmap.recycle()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    /**
+     * Returns true if the device supports HEIC encoding (API 28+).
+     */
+    fun isHeicSupported(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+
+    private fun convertToHeic(
+        inputFile: File,
+        outputFile: File,
+        quality: ConversionQuality
+    ): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            return false
+        }
+        return try {
+            val bitmap = BitmapFactory.decodeFile(inputFile.absolutePath) ?: return false
+            val writer = androidx.heifwriter.HeifWriter.Builder(
+                outputFile.absolutePath,
+                bitmap.width,
+                bitmap.height,
+                androidx.heifwriter.HeifWriter.INPUT_MODE_BITMAP
+            )
+                .setQuality(quality.qualityInt)
+                .setMaxImages(1)
+                .build()
+
+            writer.start()
+            writer.addBitmap(bitmap)
+            writer.stop(3000) // 3 second timeout
+            writer.close()
             bitmap.recycle()
             true
         } catch (e: Exception) {

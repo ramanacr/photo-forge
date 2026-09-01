@@ -11,7 +11,10 @@ data class GpsCoordinate(
     val latitude: Double,
     val longitude: Double,
     val altitudeMeters: Double? = null,
+    val directionDegrees: Double? = null,
     val speedKmH: Double? = null,
+    val dilutionOfPrecision: Double? = null,
+    val processingMethod: String? = null,
     val timestampUtc: Date? = null
 ) : Serializable {
     override fun toString(): String =
@@ -22,9 +25,12 @@ data class GpsCoordinate(
 data class CameraInfo(
     val make: String? = null,
     val model: String? = null,
+    val serialNumber: String? = null,
     val lensMake: String? = null,
     val lensModel: String? = null,
-    val software: String? = null
+    val lensSerialNumber: String? = null,
+    val software: String? = null,
+    val hostComputer: String? = null
 ) : Serializable
 
 data class ExposureInfo(
@@ -32,9 +38,13 @@ data class ExposureInfo(
     val exposureTimeSeconds: Double? = null,
     val fNumber: Double? = null,
     val focalLengthMm: Double? = null,
+    val focalLengthIn35MmFilm: Double? = null,
+    val exposureProgram: String? = null,
+    val meteringMode: String? = null,
     val flash: String? = null,
     val whiteBalance: String? = null,
-    val exposureBiasValue: Double? = null
+    val exposureBiasValue: Double? = null,
+    val colorSpace: String? = null
 ) : Serializable
 
 data class ExifData(

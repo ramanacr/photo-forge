@@ -140,6 +140,101 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- App Updates & GitHub Releases Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@color/card_dark"
+                app:cardCornerRadius="12dp"
+                app:strokeColor="@color/accent_cyan"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="🚀 App Updates &amp; GitHub Releases"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvCurrentVersion"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@color/surface_dark"
+                            android:paddingStart="8dp"
+                            android:paddingTop="2dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="2dp"
+                            android:text="v1.2.0"
+                            android:textColor="@color/accent_cyan"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Check for latest official releases directly from GitHub repository."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/swAutoCheckUpdates"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:checked="true"
+                        android:text="Check for Updates on App Launch"
+                        android:textColor="@color/text_primary" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCheckUpdates"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:backgroundTint="@color/accent_cyan"
+                        android:text="Check for Updates"
+                        android:textColor="@color/bg_dark"
+                        app:cornerRadius="8dp" />
+
+                    <ProgressBar
+                        android:id="@+id/prgUpdateProgress"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="8dp"
+                        android:layout_marginTop="8dp"
+                        android:max="100"
+                        android:progressBackgroundTint="@color/surface_dark"
+                        android:progressTint="@color/accent_cyan"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvUpdateStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="GitHub Releases self-update engine ready."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- Security & Invariants Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -168,7 +263,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="• INV-01: Original camera photos are strictly read-only and fingerprinted with SHA-256.\n• INV-02: PF-MIG idempotency markers prevent duplicate processing.\n• INV-03: Independent verification re-reads images from disk before commit.\n• INV-06: 100% offline guarantee. Zero internet permissions requested."
+                        android:text="• INV-01: Original camera photos are strictly read-only and fingerprinted with SHA-256.\n• INV-02: PF-MIG idempotency markers prevent duplicate processing.\n• INV-03: Independent verification re-reads images from disk before commit.\n• INV-06: 100% offline core image processing. Outbound network used solely for user-requested update checking."
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp" />
                 </LinearLayout>

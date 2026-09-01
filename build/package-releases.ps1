@@ -33,14 +33,17 @@ if (Test-Path $OutputDir) {
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 
 # 1. Publish Windows x64 Standalone Desktop & CLI Payload
-Write-Host "`n[1/5] Publishing Windows x64 Desktop Application & CLI..." -ForegroundColor Yellow
+Write-Host "`n[1/5] Publishing Windows x64 Desktop Application & CLI (Compressed SingleFile)..." -ForegroundColor Yellow
 $Win64Dir = "$OutputDir\PhotoForge-Windows-x64"
 dotnet publish "$RepoRoot\apps\PhotoForge.Desktop\PhotoForge.Desktop.csproj" `
     -c Release `
     -r win-x64 `
     --self-contained true `
     -p:PublishSingleFile=true `
+    -p:EnableCompressionInSingleFile=true `
     -p:IncludeNativeLibrariesForSelfExtract=true `
+    -p:DebugType=none `
+    -p:DebugSymbols=false `
     -o $Win64Dir
 
 # Also publish CLI tool to the same package so both Desktop and CLI are bundled
@@ -49,6 +52,9 @@ dotnet publish "$RepoRoot\tools\PhotoForge.Cli\PhotoForge.Cli.csproj" `
     -r win-x64 `
     --self-contained true `
     -p:PublishSingleFile=true `
+    -p:EnableCompressionInSingleFile=true `
+    -p:DebugType=none `
+    -p:DebugSymbols=false `
     -o $Win64Dir
 
 # Copy app icon to payload
@@ -60,22 +66,27 @@ if (Test-Path "$RepoRoot\apps\PhotoForge.Desktop\app.ico") {
 Write-Host "  Cleaning up publish artifacts..." -ForegroundColor Gray
 Get-ChildItem -Path $Win64Dir -Include *.pdb, *.xml, *.deps.json, *.runtimeconfig.json -Recurse | Remove-Item -Force
 
-# Create Windows x64 ZIP
-Compress-Archive -Path "$Win64Dir\*" -DestinationPath "$OutputDir\PhotoForge-v$Version-Windows-x64.zip" -Force
+# Create Windows x64 ZIP with optimal compression
+# Create Windows x64 ZIP with optimal compression
+$WinZipPath = "$OutputDir\PhotoForge-v$Version-Windows-x64.zip"
+Compress-Archive -Path "$Win64Dir\*" -DestinationPath $WinZipPath -CompressionLevel Optimal -Force
 
 # Create Payload.zip for the Setup Installer
 $InstallerPayloadPath = "$RepoRoot\apps\PhotoForge.Installer\Payload.zip"
-Copy-Item "$OutputDir\PhotoForge-v$Version-Windows-x64.zip" $InstallerPayloadPath -Force
+Copy-Item $WinZipPath $InstallerPayloadPath -Force
 
 # 2. Publish Windows Native Installer EXE with embedded Payload
-Write-Host "`n[2/5] Publishing Windows Native Setup Installer (embedding Payload.zip)..." -ForegroundColor Yellow
+Write-Host "`n[2/5] Publishing Windows Native Setup Installer (embedding compressed Payload.zip)..." -ForegroundColor Yellow
 $InstallerDir = "$OutputDir\PhotoForge-Installer-Build"
 dotnet publish "$RepoRoot\apps\PhotoForge.Installer\PhotoForge.Installer.csproj" `
     -c Release `
     -r win-x64 `
     --self-contained true `
     -p:PublishSingleFile=true `
+    -p:EnableCompressionInSingleFile=true `
     -p:IncludeNativeLibrariesForSelfExtract=true `
+    -p:DebugType=none `
+    -p:DebugSymbols=false `
     -o $InstallerDir
 
 $BuiltSetupExe = Get-ChildItem -Path $InstallerDir -Filter "PhotoForge-Setup-*.exe" | Select-Object -First 1
@@ -99,13 +110,17 @@ dotnet publish "$RepoRoot\apps\PhotoForge.Desktop\PhotoForge.Desktop.csproj" `
     -r win-arm64 `
     --self-contained true `
     -p:PublishSingleFile=true `
+    -p:EnableCompressionInSingleFile=true `
     -p:IncludeNativeLibrariesForSelfExtract=true `
+    -p:DebugType=none `
+    -p:DebugSymbols=false `
     -o $WinArm64Dir
 
 # Remove publish artifacts that shouldn't ship
 Get-ChildItem -Path $WinArm64Dir -Include *.pdb, *.xml, *.deps.json, *.runtimeconfig.json -Recurse | Remove-Item -Force
 
-Compress-Archive -Path "$WinArm64Dir\*" -DestinationPath "$OutputDir\PhotoForge-v$Version-Windows-arm64.zip" -Force
+$Arm64ZipPath = "$OutputDir\PhotoForge-v$Version-Windows-arm64.zip"
+Compress-Archive -Path "$WinArm64Dir\*" -DestinationPath $Arm64ZipPath -CompressionLevel Optimal -Force
 Remove-Item -Recurse -Force $WinArm64Dir
 
 # 4. Publish CLI Cross-Platform Package
@@ -116,26 +131,28 @@ dotnet publish "$RepoRoot\tools\PhotoForge.Cli\PhotoForge.Cli.csproj" `
     -r win-x64 `
     --self-contained true `
     -p:PublishSingleFile=true `
+    -p:EnableCompressionInSingleFile=true `
+    -p:DebugType=none `
+    -p:DebugSymbols=false `
     -o $CliDir
 
 # Remove publish artifacts that shouldn't ship
 Get-ChildItem -Path $CliDir -Include *.pdb, *.xml, *.deps.json, *.runtimeconfig.json -Recurse | Remove-Item -Force
 
-Compress-Archive -Path "$CliDir\*" -DestinationPath "$OutputDir\PhotoForge-v$Version-CLI-win-x64.zip" -Force
+$CliZipPath = "$OutputDir\PhotoForge-v$Version-CLI-win-x64.zip"
+Compress-Archive -Path "$CliDir\*" -DestinationPath $CliZipPath -CompressionLevel Optimal -Force
 Remove-Item -Recurse -Force $CliDir
 
 # 5. Package Android Application
 Write-Host "`n[5/5] Packaging PhotoForge Android Application..." -ForegroundColor Yellow
 $AndroidProjectDir = "$RepoRoot\apps\PhotoForge.Android"
 
-# Build APK via Gradle
 $GradleWrapper = "$AndroidProjectDir\gradlew.bat"
 if (-not (Test-Path $GradleWrapper)) {
     $GradleWrapper = "$AndroidProjectDir\gradlew"
 }
 
 if (Test-Path $GradleWrapper) {
-    # Ensure valid JAVA_HOME and ANDROID_HOME
     if (-not (Test-Path "$env:JAVA_HOME\bin\java.exe")) {
         if (Test-Path "C:\Program Files\Java\jdk-21\bin\java.exe") {
             $env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
@@ -149,21 +166,23 @@ if (Test-Path $GradleWrapper) {
         }
     }
 
-    Write-Host "  Building Android APK via Gradle..." -ForegroundColor Gray
-    & $GradleWrapper -p $AndroidProjectDir assembleRelease --no-daemon
+    try {
+        Write-Host "  Building Android APK via Gradle..." -ForegroundColor Gray
+        & $GradleWrapper -p $AndroidProjectDir assembleRelease --no-daemon
 
-    # Locate the built APK
-    $ApkFile = Get-ChildItem -Path "$AndroidProjectDir\build\outputs\apk\release" -Filter "*.apk" -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($ApkFile) {
-        Copy-Item $ApkFile.FullName "$OutputDir\PhotoForge-v$Version.apk" -Force
-        Write-Host "  ✔ APK built: PhotoForge-v$Version.apk" -ForegroundColor Green
-    } else {
-        Write-Host "  ⚠ Gradle build completed but no APK found in build/outputs/apk/release/" -ForegroundColor Yellow
+        # Locate the built APK
+        $ApkFile = Get-ChildItem -Path "$AndroidProjectDir\build\outputs\apk\release" -Filter "*.apk" -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($ApkFile) {
+            Copy-Item $ApkFile.FullName "$OutputDir\PhotoForge-v$Version.apk" -Force
+            Write-Host "  [OK] APK built: PhotoForge-v$Version.apk" -ForegroundColor Green
+        } else {
+            Write-Host "  [WARN] Gradle build completed but no APK found in build/outputs/apk/release/" -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host "  [WARN] Android APK build skipped (Java/Gradle environment not available locally)" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "  ⚠ Gradle wrapper not found. Skipping APK build." -ForegroundColor Yellow
-    Write-Host "    To build the APK, ensure gradlew.bat exists in apps/PhotoForge.Android/" -ForegroundColor Yellow
-    Write-Host "    You can generate it by running 'gradle wrapper' inside the Android project." -ForegroundColor Yellow
+    Write-Host "  [WARN] Gradle wrapper not found. Skipping APK build." -ForegroundColor Yellow
 }
 
 # Also package Android source + .NET bridge assemblies as a zip for reference

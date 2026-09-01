@@ -139,6 +139,14 @@
                             android:layout_weight="1"
                             android:text="PNG"
                             android:textColor="@color/text_primary" />
+
+                        <RadioButton
+                            android:id="@+id/rbHeic"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="HEIC"
+                            android:textColor="@color/text_primary" />
                     </RadioGroup>
 
                     <TextView
@@ -157,11 +165,10 @@
                         android:layout_marginTop="6dp">
 
                         <RadioButton
-                            android:id="@+id/rbHigh"
+                            android:id="@+id/rbLossless"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:checked="true"
-                            android:text="High Quality (85% - Recommended)"
+                            android:text="Lossless (100% - WebP/PNG only)"
                             android:textColor="@color/text_primary" />
 
                         <RadioButton
@@ -172,10 +179,11 @@
                             android:textColor="@color/text_primary" />
 
                         <RadioButton
-                            android:id="@+id/rbLossless"
+                            android:id="@+id/rbHigh"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Lossless (100% - WebP/PNG)"
+                            android:checked="true"
+                            android:text="High Quality (85% - Recommended)"
                             android:textColor="@color/text_primary" />
 
                         <RadioButton

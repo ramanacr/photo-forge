@@ -87,13 +87,16 @@ function Set-ProjectVersions {
     <Product>PhotoForge</Product>
     <Company>PhotoForge Project</Company>
     <Authors>Ramana Reddy Chamakura</Authors>
-    <Copyright>Copyright © 2026 PhotoForge Contributors</Copyright>
+    <Copyright>Copyright (c) 2026 PhotoForge Contributors</Copyright>
     <RepositoryUrl>https://github.com/ramanacr/photo-forge</RepositoryUrl>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 </Project>
 "@
     [System.IO.File]::WriteAllText($propsPath, $propsContent)
-    Write-Host "  ✔ Directory.Build.props -> $Version" -ForegroundColor Green
+    Write-Host "  [OK] Directory.Build.props -> $Version" -ForegroundColor Green
 
     # 2. Update Installer Project & Assembly Name
     $installerProj = Join-Path $RepoRoot "apps\PhotoForge.Installer\PhotoForge.Installer.csproj"
@@ -101,7 +104,7 @@ function Set-ProjectVersions {
         $content = [System.IO.File]::ReadAllText($installerProj)
         $content = $content -replace '<AssemblyName>PhotoForge-Setup-v[\d\.]+-x64</AssemblyName>', "<AssemblyName>PhotoForge-Setup-v$Version-x64</AssemblyName>"
         [System.IO.File]::WriteAllText($installerProj, $content)
-        Write-Host "  ✔ PhotoForge.Installer.csproj -> PhotoForge-Setup-v$Version-x64" -ForegroundColor Green
+        Write-Host "  [OK] PhotoForge.Installer.csproj -> PhotoForge-Setup-v$Version-x64" -ForegroundColor Green
     }
 
     # 3. Update Installer MainWindow Title
@@ -110,7 +113,7 @@ function Set-ProjectVersions {
         $content = [System.IO.File]::ReadAllText($installerXAML)
         $content = $content -replace 'Title="PhotoForge Setup v[\d\.]+"', "Title=`"PhotoForge Setup v$Version`""
         [System.IO.File]::WriteAllText($installerXAML, $content)
-        Write-Host "  ✔ Installer MainWindow.xaml -> PhotoForge Setup v$Version" -ForegroundColor Green
+        Write-Host "  [OK] Installer MainWindow.xaml -> PhotoForge Setup v$Version" -ForegroundColor Green
     }
 
     # 4. Update Inno Setup Script
@@ -119,7 +122,7 @@ function Set-ProjectVersions {
         $content = [System.IO.File]::ReadAllText($innoScript)
         $content = $content -replace '#define MyAppVersion "[\d\.]+"', "#define MyAppVersion `"$Version`""
         [System.IO.File]::WriteAllText($innoScript, $content)
-        Write-Host "  ✔ build\installer\photoforge.iss -> $Version" -ForegroundColor Green
+        Write-Host "  [OK] build\installer\photoforge.iss -> $Version" -ForegroundColor Green
     }
 
     # 5. Update Android build.gradle.kts
@@ -129,6 +132,6 @@ function Set-ProjectVersions {
         $content = $content -replace 'versionCode = \d+', "versionCode = $versionCode"
         $content = $content -replace 'versionName = "[\d\.]+"', "versionName = `"$Version`""
         [System.IO.File]::WriteAllText($androidGradle, $content)
-        Write-Host "  ✔ apps\PhotoForge.Android\build.gradle.kts -> $Version (code: $versionCode)" -ForegroundColor Green
+        Write-Host "  [OK] apps\PhotoForge.Android\build.gradle.kts -> $Version (code: $versionCode)" -ForegroundColor Green
     }
 }

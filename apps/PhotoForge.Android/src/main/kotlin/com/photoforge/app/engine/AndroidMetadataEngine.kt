@@ -47,21 +47,34 @@ class AndroidMetadataEngine(private val imageEngine: AndroidImageEngine = Androi
             val camera = CameraInfo(
                 make = ifd0?.getString(ExifIFD0Directory.TAG_MAKE)?.trim(),
                 model = ifd0?.getString(ExifIFD0Directory.TAG_MODEL)?.trim(),
+                serialNumber = subIfd?.getString(ExifSubIFDDirectory.TAG_BODY_SERIAL_NUMBER)?.trim(),
                 lensMake = subIfd?.getString(ExifSubIFDDirectory.TAG_LENS_MAKE)?.trim(),
                 lensModel = subIfd?.getString(ExifSubIFDDirectory.TAG_LENS_MODEL)?.trim(),
-                software = ifd0?.getString(ExifIFD0Directory.TAG_SOFTWARE)?.trim()
+                lensSerialNumber = subIfd?.getString(ExifSubIFDDirectory.TAG_LENS_SERIAL_NUMBER)?.trim(),
+                software = ifd0?.getString(ExifIFD0Directory.TAG_SOFTWARE)?.trim(),
+                hostComputer = ifd0?.getString(ExifIFD0Directory.TAG_HOST_COMPUTER)?.trim()
             )
 
             val iso = subIfd?.getInt(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT)
             val fNumber = subIfd?.getDoubleObject(ExifSubIFDDirectory.TAG_FNUMBER)
             val focal = subIfd?.getDoubleObject(ExifSubIFDDirectory.TAG_FOCAL_LENGTH)
             val exposureTime = subIfd?.getDoubleObject(ExifSubIFDDirectory.TAG_EXPOSURE_TIME)
+            val focalLength35 = subIfd?.getDoubleObject(ExifSubIFDDirectory.TAG_35MM_FILM_EQUIV_FOCAL_LENGTH)?.takeIf { it > 0 }
+                ?: focal
+            val exposureBias = subIfd?.getDoubleObject(ExifSubIFDDirectory.TAG_EXPOSURE_BIAS)
 
             val exposure = ExposureInfo(
                 iso = iso,
                 exposureTimeSeconds = exposureTime,
                 fNumber = fNumber,
-                focalLengthMm = focal
+                focalLengthMm = focal,
+                focalLengthIn35MmFilm = focalLength35,
+                exposureProgram = subIfd?.getDescription(ExifSubIFDDirectory.TAG_EXPOSURE_PROGRAM),
+                meteringMode = subIfd?.getDescription(ExifSubIFDDirectory.TAG_METERING_MODE),
+                flash = subIfd?.getDescription(ExifSubIFDDirectory.TAG_FLASH),
+                whiteBalance = subIfd?.getDescription(ExifSubIFDDirectory.TAG_WHITE_BALANCE),
+                exposureBiasValue = exposureBias,
+                colorSpace = subIfd?.getDescription(ExifSubIFDDirectory.TAG_COLOR_SPACE)
             )
 
             val dateOrig = subIfd?.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL)
@@ -73,9 +86,12 @@ class AndroidMetadataEngine(private val imageEngine: AndroidImageEngine = Androi
             val artist = ifd0?.getString(ExifIFD0Directory.TAG_ARTIST)
             val copyright = ifd0?.getString(ExifIFD0Directory.TAG_COPYRIGHT)
 
+            val dateModify = ifd0?.getDate(ExifIFD0Directory.TAG_DATETIME)
+
             exifData = ExifData(
                 dateTimeOriginal = dateOrig,
                 createDate = dateDigitized,
+                modifyDate = dateModify,
                 camera = camera,
                 exposure = exposure,
                 userComment = userComment,
@@ -88,10 +104,33 @@ class AndroidMetadataEngine(private val imageEngine: AndroidImageEngine = Androi
             val geoLocation = gpsDir?.geoLocation
             if (geoLocation != null) {
                 val alt = gpsDir.getDoubleObject(GpsDirectory.TAG_ALTITUDE)
+                val direction = gpsDir.getDoubleObject(GpsDirectory.TAG_IMG_DIRECTION)
+                val speed = gpsDir.getDoubleObject(GpsDirectory.TAG_SPEED)
+                val dop = gpsDir.getDoubleObject(GpsDirectory.TAG_DOP)
+                val processingMethod = gpsDir.getString(GpsDirectory.TAG_PROCESSING_METHOD)
+
+                // Parse GPS timestamp
+                var gpsTimestamp: Date? = null
+                val dateStamp = gpsDir.getString(GpsDirectory.TAG_DATE_STAMP)
+                val timeStamp = gpsDir.getString(GpsDirectory.TAG_TIME_STAMP)
+                if (!dateStamp.isNullOrBlank() && !timeStamp.isNullOrBlank()) {
+                    try {
+                        val gpsDateFormat = SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US).apply {
+                            timeZone = TimeZone.getTimeZone("UTC")
+                        }
+                        gpsTimestamp = gpsDateFormat.parse("$dateStamp $timeStamp")
+                    } catch (_: Exception) {}
+                }
+
                 gpsData = GpsCoordinate(
                     latitude = geoLocation.latitude,
                     longitude = geoLocation.longitude,
-                    altitudeMeters = alt
+                    altitudeMeters = alt,
+                    directionDegrees = direction,
+                    speedKmH = speed,
+                    dilutionOfPrecision = dop,
+                    processingMethod = processingMethod,
+                    timestampUtc = gpsTimestamp
                 )
             }
 
@@ -173,8 +212,23 @@ class AndroidMetadataEngine(private val imageEngine: AndroidImageEngine = Androi
         if (!original.exif.camera.model.isNullOrBlank()) {
             diff.copiedFromOriginal.add("Model: ${original.exif.camera.model}")
         }
+        if (!original.exif.camera.serialNumber.isNullOrBlank()) {
+            diff.copiedFromOriginal.add("Body Serial: ${original.exif.camera.serialNumber}")
+        }
+        if (!original.exif.camera.lensMake.isNullOrBlank()) {
+            diff.copiedFromOriginal.add("Lens Make: ${original.exif.camera.lensMake}")
+        }
         if (!original.exif.camera.lensModel.isNullOrBlank()) {
             diff.copiedFromOriginal.add("Lens: ${original.exif.camera.lensModel}")
+        }
+        if (!original.exif.camera.lensSerialNumber.isNullOrBlank()) {
+            diff.copiedFromOriginal.add("Lens Serial: ${original.exif.camera.lensSerialNumber}")
+        }
+        if (!original.exif.camera.software.isNullOrBlank()) {
+            diff.copiedFromOriginal.add("Software: ${original.exif.camera.software}")
+        }
+        if (!original.exif.camera.hostComputer.isNullOrBlank()) {
+            diff.copiedFromOriginal.add("Host Computer: ${original.exif.camera.hostComputer}")
         }
 
         // EXIF Exposure
@@ -189,6 +243,30 @@ class AndroidMetadataEngine(private val imageEngine: AndroidImageEngine = Androi
         }
         if (original.exif.exposure.focalLengthMm != null) {
             diff.copiedFromOriginal.add("FocalLength: ${original.exif.exposure.focalLengthMm}mm")
+        }
+        if (original.exif.exposure.focalLengthIn35MmFilm != null) {
+            diff.copiedFromOriginal.add("FocalLength (35mm): ${original.exif.exposure.focalLengthIn35MmFilm}mm")
+        }
+        if (original.exif.exposure.exposureTimeSeconds != null) {
+            diff.copiedFromOriginal.add("Shutter Speed: ${original.exif.exposure.exposureTimeSeconds}s")
+        }
+        if (!original.exif.exposure.exposureProgram.isNullOrBlank()) {
+            diff.copiedFromOriginal.add("Exposure Program: ${original.exif.exposure.exposureProgram}")
+        }
+        if (!original.exif.exposure.meteringMode.isNullOrBlank()) {
+            diff.copiedFromOriginal.add("Metering Mode: ${original.exif.exposure.meteringMode}")
+        }
+        if (!original.exif.exposure.flash.isNullOrBlank()) {
+            diff.copiedFromOriginal.add("Flash: ${original.exif.exposure.flash}")
+        }
+        if (!original.exif.exposure.whiteBalance.isNullOrBlank()) {
+            diff.copiedFromOriginal.add("White Balance: ${original.exif.exposure.whiteBalance}")
+        }
+        if (original.exif.exposure.exposureBiasValue != null) {
+            diff.copiedFromOriginal.add("Exposure Bias: ${original.exif.exposure.exposureBiasValue} EV")
+        }
+        if (!original.exif.exposure.colorSpace.isNullOrBlank()) {
+            diff.copiedFromOriginal.add("Color Space: ${original.exif.exposure.colorSpace}")
         }
 
         // GPS Handling Diff
@@ -246,11 +324,16 @@ class AndroidMetadataEngine(private val imageEngine: AndroidImageEngine = Androi
         origExif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)?.let { targetExif.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, it) }
         origExif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED)?.let { targetExif.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, it) }
         origExif.getAttribute(ExifInterface.TAG_FOCAL_LENGTH)?.let { targetExif.setAttribute(ExifInterface.TAG_FOCAL_LENGTH, it) }
+        origExif.getAttribute(ExifInterface.TAG_FOCAL_LENGTH_IN_35MM_FILM)?.let { targetExif.setAttribute(ExifInterface.TAG_FOCAL_LENGTH_IN_35MM_FILM, it) }
         origExif.getAttribute(ExifInterface.TAG_F_NUMBER)?.let { targetExif.setAttribute(ExifInterface.TAG_F_NUMBER, it) }
         origExif.getAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY)?.let { targetExif.setAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY, it) }
         origExif.getAttribute(ExifInterface.TAG_EXPOSURE_TIME)?.let { targetExif.setAttribute(ExifInterface.TAG_EXPOSURE_TIME, it) }
+        origExif.getAttribute(ExifInterface.TAG_EXPOSURE_PROGRAM)?.let { targetExif.setAttribute(ExifInterface.TAG_EXPOSURE_PROGRAM, it) }
+        origExif.getAttribute(ExifInterface.TAG_METERING_MODE)?.let { targetExif.setAttribute(ExifInterface.TAG_METERING_MODE, it) }
         origExif.getAttribute(ExifInterface.TAG_WHITE_BALANCE)?.let { targetExif.setAttribute(ExifInterface.TAG_WHITE_BALANCE, it) }
         origExif.getAttribute(ExifInterface.TAG_FLASH)?.let { targetExif.setAttribute(ExifInterface.TAG_FLASH, it) }
+        origExif.getAttribute(ExifInterface.TAG_EXPOSURE_BIAS_VALUE)?.let { targetExif.setAttribute(ExifInterface.TAG_EXPOSURE_BIAS_VALUE, it) }
+        origExif.getAttribute(ExifInterface.TAG_COLOR_SPACE)?.let { targetExif.setAttribute(ExifInterface.TAG_COLOR_SPACE, it) }
         origExif.getAttribute(ExifInterface.TAG_ARTIST)?.let { targetExif.setAttribute(ExifInterface.TAG_ARTIST, it) }
         origExif.getAttribute(ExifInterface.TAG_COPYRIGHT)?.let { targetExif.setAttribute(ExifInterface.TAG_COPYRIGHT, it) }
 

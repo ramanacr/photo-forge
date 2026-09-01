@@ -54,11 +54,18 @@ class PreferencesManager(context: Context) {
             prefs.edit().putBoolean(KEY_PRESERVE_KEYWORDS, value).apply()
         }
 
+    var autoCheckUpdates: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_CHECK_UPDATES, true)
+        set(value) {
+            prefs.edit().putBoolean(KEY_AUTO_CHECK_UPDATES, value).apply()
+        }
+
     companion object {
         private const val KEY_GPS_POLICY = "pref_gps_policy"
         private const val KEY_QUALITY = "pref_quality"
         private const val KEY_FORMAT = "pref_format"
         private const val KEY_AUTO_ACCEPT = "pref_auto_accept"
         private const val KEY_PRESERVE_KEYWORDS = "pref_preserve_keywords"
+        private const val KEY_AUTO_CHECK_UPDATES = "pref_auto_check_updates"
     }
 }

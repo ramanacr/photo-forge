@@ -39,13 +39,17 @@ public class GitHubUpdateService : IUpdateService
             var root = doc.RootElement;
 
             var tagName = root.GetProperty("tag_name").GetString() ?? "v1.0.0";
-            var cleanLatest = tagName.TrimStart('v', 'V');
-            var cleanCurrent = currentVersion.TrimStart('v', 'V');
+            var cleanLatest = tagName.TrimStart('v', 'V').Split('-')[0];
+            var cleanCurrent = currentVersion.TrimStart('v', 'V').Split('-')[0];
 
             bool isUpdateAvailable = false;
             if (Version.TryParse(cleanLatest, out var latestVer) && Version.TryParse(cleanCurrent, out var currVer))
             {
                 isUpdateAvailable = latestVer > currVer;
+            }
+            else
+            {
+                isUpdateAvailable = !string.Equals(cleanLatest, cleanCurrent, StringComparison.OrdinalIgnoreCase);
             }
 
             var title = root.TryGetProperty("name", out var n) ? n.GetString() ?? tagName : tagName;

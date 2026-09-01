@@ -141,6 +141,38 @@ class AndroidStorageBridge(private val context: Context) {
         }
     }
 
+    fun isGooglePhotosInstalled(): Boolean {
+        return try {
+            context.packageManager.getPackageInfo("com.google.android.apps.photos", 0)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    fun openGooglePhotos(): Boolean {
+        return try {
+            val intent = context.packageManager.getLaunchIntentForPackage("com.google.android.apps.photos")
+            if (intent != null) {
+                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+                true
+            } else {
+                // Fallback to Play Store
+                val playStoreIntent = android.content.Intent(
+                    android.content.Intent.ACTION_VIEW,
+                    Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.photos")
+                ).apply {
+                    addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(playStoreIntent)
+                false
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     fun createThumbnail(file: File, maxDim: Int = 256): Bitmap? {
         return try {
             val options = BitmapFactory.Options().apply {

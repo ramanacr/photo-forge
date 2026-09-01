@@ -27,4 +27,9 @@
     <string name="quality_high">High (85%)</string>
     <string name="quality_balanced">Balanced (75%)</string>
     <string name="quality_small">Small (60%)</string>
+
+    <string name="google_photos_title">Google Photos Cloud Album</string>
+    <string name="google_photos_import">Import Album from Google Photos</string>
+    <string name="google_photos_open">Open Google Photos App</string>
+    <string name="google_photos_desc">Pick edited albums and originals directly from your Google Photos library with cloud picker support.</string>
 </resources>

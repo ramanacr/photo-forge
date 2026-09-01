@@ -98,6 +98,33 @@ class MainActivity : AppCompatActivity() {
         binding.cardVerify.setOnClickListener {
             startActivity(Intent(this, VerifyActivity::class.java))
         }
+
+        // Background update check on startup
+        if (prefsManager.autoCheckUpdates) {
+            checkUpdatesSilently()
+        }
+    }
+
+    private val updateEngine = com.photoforge.app.engine.AndroidUpdateEngine()
+
+    private fun checkUpdatesSilently() {
+        lifecycleScope.launch {
+            try {
+                val pInfo = packageManager.getPackageInfo(packageName, 0)
+                val currentVer = pInfo.versionName ?: "1.2.0"
+                val update = updateEngine.checkForUpdates(currentVer)
+
+                if (update != null && update.isUpdateAvailable) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "🌟 PhotoForge v${update.latestVersion} update is available! Check Settings to install.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } catch (_: Exception) {
+                // Silent non-blocking failure
+            }
+        }
     }
 
     private fun processSelectedPair() {

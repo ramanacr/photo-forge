@@ -33,15 +33,15 @@ class BatchActivity : AppCompatActivity() {
     private val editedUris = mutableListOf<Uri>()
     private val originalUris = mutableListOf<Uri>()
 
-    private val pickEditedLauncher = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
+    private val pickEditedLauncher = registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris: List<Uri> ->
         if (uris.isNotEmpty()) {
             editedUris.clear()
             editedUris.addAll(uris)
-            binding.tvEditedCount.text = "${editedUris.size} edited photo(s) selected"
+            binding.tvEditedCount.text = "${editedUris.size} edited photo(s) selected from Library / Google Photos"
         }
     }
 
-    private val pickOriginalsLauncher = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
+    private val pickOriginalsLauncher = registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris: List<Uri> ->
         if (uris.isNotEmpty()) {
             originalUris.clear()
             originalUris.addAll(uris)
@@ -63,16 +63,60 @@ class BatchActivity : AppCompatActivity() {
 
         binding.toolbar.setNavigationOnClickListener { finish() }
 
+        // Google Photos Cloud Album Actions
+        binding.btnImportGooglePhotos.setOnClickListener {
+            pickEditedLauncher.launch(
+                androidx.activity.result.PickVisualMediaRequest(
+                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                )
+            )
+        }
+
+        binding.btnOpenGooglePhotos.setOnClickListener {
+            val opened = storageBridge.openGooglePhotos()
+            if (!opened) {
+                Toast.makeText(this, "Opening Google Photos in Play Store...", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Standard Pickers
         binding.btnSelectEdited.setOnClickListener {
-            pickEditedLauncher.launch("image/*")
+            pickEditedLauncher.launch(
+                androidx.activity.result.PickVisualMediaRequest(
+                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                )
+            )
         }
 
         binding.btnSelectOriginals.setOnClickListener {
-            pickOriginalsLauncher.launch("image/*")
+            pickOriginalsLauncher.launch(
+                androidx.activity.result.PickVisualMediaRequest(
+                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                )
+            )
         }
 
         binding.btnStartBatch.setOnClickListener {
             startBatchExecution()
+        }
+
+        // Handle incoming pre-loaded URIs (e.g. shared from Google Photos)
+        handleIncomingUris(intent)
+    }
+
+    private fun handleIncomingUris(intent: android.content.Intent?) {
+        val extraUris = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            intent?.getParcelableArrayListExtra(android.content.Intent.EXTRA_STREAM, Uri::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent?.getParcelableArrayListExtra<Uri>(android.content.Intent.EXTRA_STREAM)
+        }
+
+        if (!extraUris.isNullOrEmpty()) {
+            editedUris.clear()
+            editedUris.addAll(extraUris)
+            binding.tvEditedCount.text = "${editedUris.size} photo(s) imported from Google Photos"
+            Toast.makeText(this, "🌟 Imported ${editedUris.size} photos from Google Photos! Now select originals pool.", Toast.LENGTH_LONG).show()
         }
     }
 

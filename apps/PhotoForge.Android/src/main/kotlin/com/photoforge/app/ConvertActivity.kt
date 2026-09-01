@@ -91,7 +91,14 @@ class ConvertActivity : AppCompatActivity() {
         val targetFormat = when {
             binding.rbWebp.isChecked -> "WEBP"
             binding.rbPng.isChecked -> "PNG"
+            binding.rbHeic.isChecked -> "HEIC"
             else -> "JPEG"
+        }
+
+        // HEIC requires API 28+ (Android 9 Pie)
+        if (targetFormat == "HEIC" && !imageEngine.isHeicSupported()) {
+            Toast.makeText(this, "HEIC encoding requires Android 9 (Pie) or higher", Toast.LENGTH_LONG).show()
+            return
         }
 
         val quality = when {
@@ -105,12 +112,14 @@ class ConvertActivity : AppCompatActivity() {
         val ext = when (targetFormat) {
             "WEBP" -> ".webp"
             "PNG" -> ".png"
+            "HEIC" -> ".heic"
             else -> ".jpg"
         }
 
         val mimeType = when (targetFormat) {
             "WEBP" -> "image/webp"
             "PNG" -> "image/png"
+            "HEIC" -> "image/heic"
             else -> "image/jpeg"
         }
 

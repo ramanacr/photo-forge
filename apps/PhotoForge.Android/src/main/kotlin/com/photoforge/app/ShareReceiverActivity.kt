@@ -21,7 +21,7 @@ class ShareReceiverActivity : AppCompatActivity() {
     private val metadataEngine = AndroidMetadataEngine()
     private val sharedUris = mutableListOf<Uri>()
 
-    private val pickOriginalLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { origUri: Uri? ->
+    private val pickOriginalLauncher = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { origUri: Uri? ->
         if (origUri != null && sharedUris.isNotEmpty()) {
             processShareRestore(sharedUris.first(), origUri)
         } else {
@@ -61,9 +61,20 @@ class ShareReceiverActivity : AppCompatActivity() {
             }
         }
 
-        if (sharedUris.isNotEmpty()) {
+        if (sharedUris.size > 1) {
+            // Forward multiple photos to Batch Album Studio
+            val batchIntent = Intent(this, BatchActivity::class.java).apply {
+                putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(sharedUris))
+            }
+            startActivity(batchIntent)
+            finish()
+        } else if (sharedUris.isNotEmpty()) {
             Toast.makeText(this, "PhotoForge: Select matching original camera photo", Toast.LENGTH_LONG).show()
-            pickOriginalLauncher.launch("image/*")
+            pickOriginalLauncher.launch(
+                androidx.activity.result.PickVisualMediaRequest(
+                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                )
+            )
         } else {
             Toast.makeText(this, "No image shared with PhotoForge", Toast.LENGTH_SHORT).show()
             finish()

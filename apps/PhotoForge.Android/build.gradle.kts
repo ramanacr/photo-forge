@@ -11,8 +11,8 @@ android {
         applicationId = "com.photoforge.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 10200
-        versionName = "1.2.0"
+        versionCode = 10300
+        versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -57,6 +57,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("androidx.exifinterface:exifinterface:1.3.7")
     implementation("com.drewnoakes:metadata-extractor:2.19.0")
+    implementation("androidx.heifwriter:heifwriter:1.1.0")
     
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
