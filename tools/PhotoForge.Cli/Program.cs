@@ -23,13 +23,20 @@ public class Program
 {
     public static async Task<int> Main(string[] args)
     {
+        bool jsonMode = args.Contains("--json");
+
+        if (args.Contains("--version") || args.Contains("-v") || (args.Length == 1 && args[0].Equals("version", StringComparison.OrdinalIgnoreCase)))
+        {
+            if (jsonMode) Console.WriteLine(JsonSerializer.Serialize(new { version = GetCliVersion(), product = "PhotoForge CLI" }));
+            else Console.WriteLine($"PhotoForge CLI v{GetCliVersion()}");
+            return 0;
+        }
+
         if (args.Length == 0 || args.Contains("--help") || args.Contains("-h"))
         {
             PrintHelp();
             return 0;
         }
-
-        bool jsonMode = args.Contains("--json");
 
         try
         {
@@ -105,10 +112,16 @@ public class Program
         }
     }
 
+    private static string GetCliVersion()
+    {
+        var ver = typeof(Program).Assembly.GetName().Version;
+        return ver != null ? $"{ver.Major}.{ver.Minor}.{ver.Build}" : "1.3.0";
+    }
+
     private static void PrintHelp()
     {
         AnsiConsole.Write(new FigletText("PhotoForge").Color(Color.Cyan1));
-        AnsiConsole.MarkupLine("[bold white]Offline-first Photo Metadata Continuity & Format Conversion[/]");
+        AnsiConsole.MarkupLine($"[bold white]Offline-first Photo Metadata Continuity & Format Conversion Suite (v{GetCliVersion()})[/]");
         AnsiConsole.MarkupLine("[grey]Edit freely. Keep everything.[/]");
         Console.WriteLine();
         AnsiConsole.MarkupLine("[bold yellow]USAGE:[/] photoforge <command> [[options]]");
@@ -123,8 +136,9 @@ public class Program
         AnsiConsole.MarkupLine("  [cyan]update[/]     Check for and apply self-updates from GitHub Releases");
         Console.WriteLine();
         AnsiConsole.MarkupLine("[bold]GLOBAL OPTIONS:[/]");
-        AnsiConsole.MarkupLine("  [cyan]--json[/]      Output machine-readable JSON");
-        AnsiConsole.MarkupLine("  [cyan]--help, -h[/]  Show this help screen");
+        AnsiConsole.MarkupLine("  [cyan]--version, -v[/] Show current version");
+        AnsiConsole.MarkupLine("  [cyan]--json[/]        Output machine-readable JSON");
+        AnsiConsole.MarkupLine("  [cyan]--help, -h[/]    Show this help screen");
     }
 
     private static int PrintUnknownCommand(string command)
@@ -532,7 +546,8 @@ public class Program
             AnsiConsole.MarkupLine("[bold cyan]Checking for PhotoForge updates on GitHub Releases...[/]");
         }
 
-        var updateInfo = await updateService.CheckForUpdatesAsync("1.0.0");
+        var currentVer = GetCliVersion();
+        var updateInfo = await updateService.CheckForUpdatesAsync(currentVer);
         if (updateInfo == null)
         {
             if (jsonMode) Console.WriteLine(JsonSerializer.Serialize(new { status = "error", message = "Failed to query GitHub releases." }));

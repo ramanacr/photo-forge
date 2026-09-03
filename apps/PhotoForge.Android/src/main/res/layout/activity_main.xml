@@ -37,9 +37,10 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tvSubtitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Offline Metadata Continuity Suite"
+                        android:text="Offline Metadata Continuity Suite • v1.3.0"
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp" />
                 </LinearLayout>

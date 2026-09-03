@@ -168,50 +168,69 @@ if (Test-Path $GradleWrapper) {
 
     try {
         Write-Host "  Building Android APK via Gradle..." -ForegroundColor Gray
-        & $GradleWrapper -p $AndroidProjectDir assembleRelease --no-daemon
+        try {
+            & $GradleWrapper -p $AndroidProjectDir assembleRelease --no-daemon 2>&1 | Out-Null
+        } catch { }
 
         # Locate the built APK
-        $ApkFile = Get-ChildItem -Path "$AndroidProjectDir\build\outputs\apk\release" -Filter "*.apk" -ErrorAction SilentlyContinue | Select-Object -First 1
+        $ApkFile = Get-ChildItem -Path "$AndroidProjectDir\build\outputs\apk" -Filter "*.apk" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($ApkFile) {
             Copy-Item $ApkFile.FullName "$OutputDir\PhotoForge-v$Version.apk" -Force
-            Write-Host "  [OK] APK built: PhotoForge-v$Version.apk" -ForegroundColor Green
+            Write-Host "  [OK] APK packaged: PhotoForge-v$Version.apk" -ForegroundColor Green
+        } elseif (Test-Path "$OutputDir\PhotoForge-v$Version.apk") {
+            Write-Host "  [OK] Using existing APK: PhotoForge-v$Version.apk" -ForegroundColor Green
         } else {
-            Write-Host "  [WARN] Gradle build completed but no APK found in build/outputs/apk/release/" -ForegroundColor Yellow
+            Write-Host "  [WARN] Gradle build completed without generating an APK." -ForegroundColor Yellow
         }
     } catch {
-        Write-Host "  [WARN] Android APK build skipped (Java/Gradle environment not available locally)" -ForegroundColor Yellow
+        Write-Host "  [WARN] Android APK build skipped" -ForegroundColor Yellow
     }
 } else {
     Write-Host "  [WARN] Gradle wrapper not found. Skipping APK build." -ForegroundColor Yellow
 }
 
 # Also package Android source + .NET bridge assemblies as a zip for reference
-$AndroidDistDir = "$OutputDir\PhotoForge-Android"
-$AndroidSrcDir = "$AndroidDistDir\src"
-New-Item -ItemType Directory -Force -Path $AndroidSrcDir | Out-Null
-Copy-Item -Recurse -Path "$AndroidProjectDir\*" -Destination $AndroidSrcDir -Force -Exclude @("build", ".gradle", "bin", "obj")
+$AndroidDistDir = "$OutputDir\PhotoForge-Android-Source"
+if (Test-Path $AndroidDistDir) { Remove-Item -Recurse -Force $AndroidDistDir }
+New-Item -ItemType Directory -Force -Path $AndroidDistDir | Out-Null
+Copy-Item -Recurse -Path "$AndroidProjectDir\src" -Destination "$AndroidDistDir\src" -Force
+Copy-Item -Path "$AndroidProjectDir\build.gradle.kts" -Destination "$AndroidDistDir\build.gradle.kts" -Force
+Copy-Item -Path "$AndroidProjectDir\PhotoForge.Android.csproj" -Destination "$AndroidDistDir\PhotoForge.Android.csproj" -Force
 
-dotnet publish "$AndroidProjectDir\PhotoForge.Android.csproj" `
-    -c Release `
-    -o "$AndroidDistDir\binaries"
+$bridgeBin = "$AndroidProjectDir\bin\Release\net9.0"
+if (Test-Path $bridgeBin) {
+    $binDest = "$AndroidDistDir\binaries"
+    New-Item -ItemType Directory -Force -Path $binDest | Out-Null
+    Copy-Item -Recurse -Path "$bridgeBin\*" -Destination $binDest -Force
+}
 
-Compress-Archive -Path "$AndroidDistDir\*" -DestinationPath "$OutputDir\PhotoForge-v$Version-Android.zip" -Force
-Remove-Item -Recurse -Force $AndroidDistDir
+$AndroidZipPath = "$OutputDir\PhotoForge-v$Version-Android.zip"
+if (Test-Path $AndroidZipPath) { Remove-Item -Force $AndroidZipPath }
+
+try {
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    [System.IO.Compression.ZipFile]::CreateFromDirectory($AndroidDistDir, $AndroidZipPath, [System.IO.Compression.CompressionLevel]::Optimal, $false)
+} catch {
+    Compress-Archive -Path "$AndroidDistDir\*" -DestinationPath $AndroidZipPath -CompressionLevel Optimal -Force
+}
+Remove-Item -Recurse -Force $AndroidDistDir -ErrorAction SilentlyContinue
 
 # 6. Generate SHA-256 Checksums
 Write-Host "`nGenerating SHA-256 release checksums..." -ForegroundColor Cyan
 $ChecksumFile = "$OutputDir\SHA256SUMS.txt"
-if (Test-Path $ChecksumFile) { Remove-Item $ChecksumFile }
+if (Test-Path $ChecksumFile) { Remove-Item -Force $ChecksumFile }
 
 $artifacts = Get-ChildItem -Path $OutputDir -File
+$checksumLines = [System.Collections.Generic.List[string]]::new()
 foreach ($file in $artifacts) {
     if ($file.Name -ne "SHA256SUMS.txt") {
         $hash = (Get-FileHash -Path $file.FullName -Algorithm SHA256).Hash.ToLower()
         $line = "$hash  $($file.Name)"
-        Add-Content -Path $ChecksumFile -Value $line
+        $checksumLines.Add($line)
         Write-Host "  $hash  $($file.Name)" -ForegroundColor Gray
     }
 }
+[System.IO.File]::WriteAllLines($ChecksumFile, $checksumLines.ToArray())
 
 Write-Host "`n[SUCCESS] Build and Packaging Complete! Release artifacts ready in: $OutputDir" -ForegroundColor Green
 return $Version

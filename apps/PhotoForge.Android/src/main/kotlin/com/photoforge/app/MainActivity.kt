@@ -45,6 +45,8 @@ class MainActivity : AppCompatActivity() {
         storageBridge = AndroidStorageBridge(this)
         prefsManager = PreferencesManager(this)
 
+        binding.tvSubtitle.text = "Offline Metadata Continuity Suite • v${getAppVersionName()}"
+
         // Top Settings
         binding.btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
@@ -107,11 +109,24 @@ class MainActivity : AppCompatActivity() {
 
     private val updateEngine = com.photoforge.app.engine.AndroidUpdateEngine()
 
+    private fun getAppVersionName(): String {
+        return try {
+            val pInfo = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getPackageInfo(packageName, android.content.pm.PackageManager.PackageInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(packageName, 0)
+            }
+            pInfo.versionName ?: "1.3.0"
+        } catch (_: Exception) {
+            "1.3.0"
+        }
+    }
+
     private fun checkUpdatesSilently() {
         lifecycleScope.launch {
             try {
-                val pInfo = packageManager.getPackageInfo(packageName, 0)
-                val currentVer = pInfo.versionName ?: "1.2.0"
+                val currentVer = getAppVersionName()
                 val update = updateEngine.checkForUpdates(currentVer)
 
                 if (update != null && update.isUpdateAvailable) {

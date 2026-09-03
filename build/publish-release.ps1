@@ -105,8 +105,15 @@ $candidateAssets = @(
 $assets = $candidateAssets | Where-Object { Test-Path $_ }
 Write-Host "Found $($assets.Count) release assets to upload." -ForegroundColor Cyan
 
-$existingRelease = gh release view $tag 2>$null
-if ($LASTEXITCODE -eq 0) {
+$existingRelease = $null
+try {
+    $existingRelease = gh release view $tag 2>&1
+    if ($LASTEXITCODE -ne 0) { $existingRelease = $null }
+} catch {
+    $existingRelease = $null
+}
+
+if ($existingRelease -and $LASTEXITCODE -eq 0) {
     Write-Host "Updating existing GitHub Release $tag..." -ForegroundColor Yellow
     gh release edit $tag --title "PhotoForge $tag" --notes-file $notesFile
     gh release upload $tag $assets --clobber

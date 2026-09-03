@@ -57,13 +57,20 @@ public partial class MainWindow : Window
             ChkExplorerMenu.IsChecked = ShellRegistration.IsRegistered();
         }
 
+        var appVer = GetCurrentAppVersion();
+        Title = $"PhotoForge v{appVer} - Offline Photo Metadata Continuity Suite";
+        if (TxtVersionInfo != null)
+        {
+            TxtVersionInfo.Text = $"PhotoForge v{appVer} (Installed)";
+        }
+
         Loaded += (s, e) => _ = BackgroundStartupUpdateCheckAsync();
     }
 
     private string GetCurrentAppVersion()
     {
         var ver = typeof(MainWindow).Assembly.GetName().Version;
-        return ver != null ? $"{ver.Major}.{ver.Minor}.{ver.Build}" : "1.2.0";
+        return ver != null ? $"{ver.Major}.{ver.Minor}.{ver.Build}" : "1.3.0";
     }
 
     private async Task BackgroundStartupUpdateCheckAsync()

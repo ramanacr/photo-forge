@@ -55,10 +55,15 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun getAppVersionName(): String {
         return try {
-            val pInfo = packageManager.getPackageInfo(packageName, 0)
-            pInfo.versionName ?: "1.2.0"
+            val pInfo = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getPackageInfo(packageName, android.content.pm.PackageManager.PackageInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(packageName, 0)
+            }
+            pInfo.versionName ?: "1.3.0"
         } catch (_: Exception) {
-            "1.2.0"
+            "1.3.0"
         }
     }
 

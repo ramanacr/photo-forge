@@ -117,7 +117,7 @@ public static class InstallerEngine
         var baseDir = AppDomain.CurrentDomain.BaseDirectory;
         var directFiles = Directory.GetFiles(baseDir, "*.*", SearchOption.TopDirectoryOnly);
         var filteredFiles = directFiles.Where(f =>
-            !f.EndsWith("PhotoForge-Setup-v1.0.0-x64.exe", StringComparison.OrdinalIgnoreCase) &&
+            !Path.GetFileName(f).StartsWith("PhotoForge-Setup-", StringComparison.OrdinalIgnoreCase) &&
             !f.EndsWith("PhotoForge.Installer.exe", StringComparison.OrdinalIgnoreCase)).ToList();
 
         if (filteredFiles.Count == 0)
@@ -210,8 +210,11 @@ echo PhotoForge has been successfully uninstalled.
         using var uninstallKey = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\PhotoForge");
         if (uninstallKey != null)
         {
+            var installerVer = typeof(InstallerEngine).Assembly.GetName().Version;
+            var verString = installerVer != null ? $"{installerVer.Major}.{installerVer.Minor}.{installerVer.Build}" : "1.3.0";
+
             uninstallKey.SetValue("DisplayName", "PhotoForge (Offline Metadata Continuity Platform)");
-            uninstallKey.SetValue("DisplayVersion", "1.0.0");
+            uninstallKey.SetValue("DisplayVersion", verString);
             uninstallKey.SetValue("Publisher", "PhotoForge Team");
             uninstallKey.SetValue("InstallLocation", targetDir);
             uninstallKey.SetValue("UninstallString", $"cmd.exe /c \"{uninstallerBat}\"");

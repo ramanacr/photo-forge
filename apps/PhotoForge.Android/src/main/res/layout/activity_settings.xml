@@ -180,7 +180,7 @@
                             android:paddingTop="2dp"
                             android:paddingEnd="8dp"
                             android:paddingBottom="2dp"
-                            android:text="v1.2.0"
+                            android:text="v1.3.0"
                             android:textColor="@color/accent_cyan"
                             android:textSize="11sp"
                             android:textStyle="bold" />

@@ -134,4 +134,56 @@ function Set-ProjectVersions {
         [System.IO.File]::WriteAllText($androidGradle, $content)
         Write-Host "  [OK] apps\PhotoForge.Android\build.gradle.kts -> $Version (code: $versionCode)" -ForegroundColor Green
     }
+
+    # 6. Update Android Settings & Main Layouts
+    $settingsLayout = Join-Path $RepoRoot "apps\PhotoForge.Android\src\main\res\layout\activity_settings.xml"
+    if (Test-Path $settingsLayout) {
+        $content = [System.IO.File]::ReadAllText($settingsLayout)
+        $content = $content -replace 'android:text="v[\d\.]+"', "android:text=`"v$Version`""
+        [System.IO.File]::WriteAllText($settingsLayout, $content)
+        Write-Host "  [OK] activity_settings.xml -> v$Version" -ForegroundColor Green
+    }
+
+    $mainLayout = Join-Path $RepoRoot "apps\PhotoForge.Android\src\main\res\layout\activity_main.xml"
+    if (Test-Path $mainLayout) {
+        $content = [System.IO.File]::ReadAllText($mainLayout)
+        $content = $content -replace 'Offline Metadata Continuity Suite • v[\d\.]+', "Offline Metadata Continuity Suite • v$Version"
+        [System.IO.File]::WriteAllText($mainLayout, $content)
+        Write-Host "  [OK] activity_main.xml -> v$Version" -ForegroundColor Green
+    }
+
+    # 7. Update Website Landing and Downloads Pages
+    $webIndex = Join-Path $RepoRoot "website\index.html"
+    if (Test-Path $webIndex) {
+        $content = [System.IO.File]::ReadAllText($webIndex)
+        $content = $content -replace 'Version [\d\.]+ Released', "Version $Version Released"
+        $content = $content -replace 'v[\d\.]+\/PhotoForge-Setup-v[\d\.]+-x64\.exe', "v$Version/PhotoForge-Setup-v$Version-x64.exe"
+        $content = $content -replace 'Windows Setup \(v[\d\.]+ x64\)', "Windows Setup (v$Version x64)"
+        $content = $content -replace 'v[\d\.]+\/PhotoForge-v[\d\.]+\.apk', "v$Version/PhotoForge-v$Version.apk"
+        $content = $content -replace 'Android APK \(v[\d\.]+\)', "Android APK (v$Version)"
+        [System.IO.File]::WriteAllText($webIndex, $content)
+        Write-Host "  [OK] website\index.html -> v$Version" -ForegroundColor Green
+    }
+
+    $webDownloads = Join-Path $RepoRoot "website\downloads\index.html"
+    if (Test-Path $webDownloads) {
+        $content = [System.IO.File]::ReadAllText($webDownloads)
+        $content = $content -replace 'PhotoForge v[\d\.]+ \(Latest Release\)', "PhotoForge v$Version (Latest Release)"
+        $content = $content -replace '<span class="tag">v[\d\.]+</span>', "<span class=`"tag`">v$Version</span>"
+        $content = $content -replace 'v[\d\.]+\/PhotoForge-v[\d\.]+\.apk', "v$Version/PhotoForge-v$Version.apk"
+        $content = $content -replace 'PhotoForge-v[\d\.]+\.apk', "PhotoForge-v$Version.apk"
+        $content = $content -replace 'v[\d\.]+\/PhotoForge-Setup-v[\d\.]+-x64\.exe', "v$Version/PhotoForge-Setup-v$Version-x64.exe"
+        $content = $content -replace 'PhotoForge-Setup-v[\d\.]+-x64\.exe', "PhotoForge-Setup-v$Version-x64.exe"
+        $content = $content -replace 'v[\d\.]+\/PhotoForge-v[\d\.]+-Windows-x64\.zip', "v$Version/PhotoForge-v$Version-Windows-x64.zip"
+        $content = $content -replace 'PhotoForge-v[\d\.]+-Windows-x64\.zip', "PhotoForge-v$Version-Windows-x64.zip"
+        $content = $content -replace 'v[\d\.]+\/PhotoForge-v[\d\.]+-Windows-arm64\.zip', "v$Version/PhotoForge-v$Version-Windows-arm64.zip"
+        $content = $content -replace 'PhotoForge-v[\d\.]+-Windows-arm64\.zip', "PhotoForge-v$Version-Windows-arm64.zip"
+        $content = $content -replace 'v[\d\.]+\/PhotoForge-v[\d\.]+-CLI-win-x64\.zip', "v$Version/PhotoForge-v$Version-CLI-win-x64.zip"
+        $content = $content -replace 'PhotoForge-v[\d\.]+-CLI-win-x64\.zip', "PhotoForge-v$Version-CLI-win-x64.zip"
+        $content = $content -replace 'v[\d\.]+\/PhotoForge-v[\d\.]+-Android\.zip', "v$Version/PhotoForge-v$Version-Android.zip"
+        $content = $content -replace 'PhotoForge-v[\d\.]+-Android\.zip', "PhotoForge-v$Version-Android.zip"
+        $content = $content -replace 'v[\d\.]+\/SHA256SUMS\.txt', "v$Version/SHA256SUMS.txt"
+        [System.IO.File]::WriteAllText($webDownloads, $content)
+        Write-Host "  [OK] website\downloads\index.html -> v$Version" -ForegroundColor Green
+    }
 }
