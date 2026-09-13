@@ -23,53 +23,91 @@ $tag = "v$builtVersion"
 
 Write-Host "`nTarget Release Tag: $tag" -ForegroundColor Cyan
 
-# 2. Generate Release Notes
+# 2. Generate Structured Release Notes
 $notesFile = "$PSScriptRoot\RELEASE_NOTES_$tag.md"
-$template = @'
-# PhotoForge __TAG__ - Official Release
+$distDir = "$PSScriptRoot\dist"
+
+# Generate Dynamic Artifact Manifest Table
+$manifestRows = [System.Collections.Generic.List[string]]::new()
+$distFiles = Get-ChildItem -Path $distDir -File | Where-Object { -not $_.Name.EndsWith(".sha256") -and $_.Name -ne "SHA256SUMS.txt" }
+foreach ($file in $distFiles) {
+    $sizeMB = [math]::Round($file.Length / 1MB, 2)
+    $hash = (Get-FileHash -Path $file.FullName -Algorithm SHA256).Hash.ToLower()
+    $arch = if ($file.Name -match "arm64") { "Windows ARM64" } elseif ($file.Name -match "x64") { "Windows x64" } elseif ($file.Name -match "Android|\.apk") { "Android (Universal)" } else { "Multi-Platform" }
+    $manifestRows.Add("| ``$($file.Name)`` | $arch | ${sizeMB} MB | ``$hash`` |")
+}
+$manifestTable = ($manifestRows -join "`n")
+
+$template = @"
+# PhotoForge $tag — Production Release
 
 PhotoForge is an offline-first photo metadata continuity and modern format-conversion platform for Windows and Android.
 
 ---
 
-## What's New in __TAG__
+## 1. Executive Summary
 
-### Auto / Self-Update from GitHub Releases (Windows & Android)
-- **Windows Desktop Updater:** Automatic background check on launch and manual "Check for Updates" button in Settings. Downloads update installers directly from GitHub Releases, verifies SHA-256 checksums, and launches setup.
-- **Android Self-Updater:** Integrated `AndroidUpdateEngine` querying GitHub Releases API, streaming APK downloads with progress indicator, and launching the native Android Package Installer via `FileProvider`.
-
-### Windows Installer Size Optimization (~70% Reduction)
-- **Single-File Assembly Compression:** Enabled `EnableCompressionInSingleFile=true` and stripped release debug symbols.
-- **Optimal Payload Compression:** Re-engineered installer payload packing using .NET's `CompressionLevel::SmallestSize`, cutting installer footprint from ~160 MB down to ~45 MB.
-
-### Google Photos Cloud Album Integration
-- **Batch Album Studio Integration:** Dedicated Google Photos card supporting direct multi-image cloud album import via Android Photo Picker (`PickMultipleVisualMedia`) and 1-tap app launch.
-- **Multi-Share Sheet Routing:** Sharing multiple photos from Google Photos directly routes into Batch Album Studio with all URIs pre-populated.
-
-### HEIC/HEIF Format Conversion Support (Android)
-- **Native HEIC Encoding:** Integrated AndroidX `HeifWriter` for hardware-accelerated HEIC/HEIF encoding on Android 9+ (API 28+) with quality preset controls.
-- **Quality Preset Order Fix:** Reorganized presets into clear descending quality order (Lossless 100% -> Very High 95% -> High 85% -> Balanced 75% -> Small 60%).
-
-### Complete Metadata Extraction & Parity (Samsung S23 & Android)
-- **Full Exposure Tag Coverage:** Extracted and rendered Exposure Program, Metering Mode, Flash, White Balance, Color Space, Exposure Bias (EV), and 35mm Equivalent Focal Length.
-- **Expanded Camera & Optics:** Added Body Serial Number, Lens Make, Lens Serial Number, Software, and Host Computer.
-- **Detailed GPS Coordinates:** Added GPS Direction, Movement Speed, Dilution of Precision (DOP), Processing Method, and UTC GPS Timestamp.
+Release **$tag** introduces the **Metallic Radium Theme System**, fixes critical security vulnerabilities, aligns with the **INV-06 100% Offline Guarantee**, resolves Windows Explorer shell integration bugs, optimizes memory utilization for high-resolution images, and enhances SQLite database concurrency.
 
 ---
 
-## Release Artifacts & Checksums
+## 2. Technical Root Causes & Fixes
 
-See `SHA256SUMS.txt` in release downloads for cryptographic validation.
+### 🛡️ Security Vulnerabilities & Invariant Enforcement
+- **ImageSharp Vulnerability Patch (CVE / GHSA-rxmq-m78w-7wmc):**
+  - *Root Cause:* Dependency ``SixLabors.ImageSharp 3.1.7`` contained an unconstrained resource allocation vulnerability.
+  - *Fix:* Upgraded to ``SixLabors.ImageSharp 3.1.12``, eliminating the ``NU1902`` advisory.
+- **Zip Slip Path Traversal Protection:**
+  - *Root Cause:* ``InstallerEngine.ExtractPayload`` lacked canonical destination path prefix validation.
+  - *Fix:* Enforced ``Path.GetFullPath`` bounds validation throwing ``SecurityException`` upon any directory escape attempt.
+- **Invariant INV-06 Offline Guarantee Alignment:**
+  - *Root Cause:* Automated background network calls to the GitHub API were previously executed on app launch.
+  - *Fix:* Removed automatic startup network pings. Core domain engines are verified offline with zero socket dependencies; update checks are now strictly user-initiated.
+
+### ⚡ Performance & Resource Optimization
+- **Perceptual dHash Memory Optimization:**
+  - *Root Cause:* Hashing 50MP+ RAW/JPEG photos allocated full uncompressed RGBA bitmaps in memory, risking OOM.
+  - *Fix:* Implemented in-place downsampled resizing in C# and ``inSampleSize`` bounds decoders in Android.
+- **SQLite Concurrency & Candidate Caching:**
+  - *Root Cause:* SQLite database lacked Write-Ahead Logging, causing table lock contention during rapid batch runs.
+  - *Fix:* Enabled ``PRAGMA journal_mode = WAL;`` and ``PRAGMA busy_timeout = 5000;`` and implemented ``GetCachedCandidateAsync`` to reuse candidate hashes.
+
+### 🎨 Visual Experience & Shell Integration
+- **Metallic Radium Theme:**
+  - Adopted the full Metallic Radium design token specification across Desktop WPF, Web, Installer, and Android apps.
+- **Windows Explorer Context Menu Auto-Match:**
+  - Fixed command line invocation when ``--original`` is omitted by introducing ``--auto-match`` candidate discovery across related directories.
 
 ---
 
-## Security & Privacy Notice
-PhotoForge operates **100% offline** for all core photo manipulation. Zero network requests, analytics, or telemetry are ever initiated.
-'@
+## 3. Artifact Manifest & Cryptographic Checksums
 
-$notesContent = $template.Replace("__TAG__", $tag)
-[System.IO.File]::WriteAllText($notesFile, $notesContent)
-Write-Host "  [OK] Release notes generated at $notesFile" -ForegroundColor Green
+| Binary Asset | Architecture | Size | SHA-256 Checksum |
+|---|---|---|---|
+$manifestTable
+
+> [!NOTE]
+> Every release asset is accompanied by an individual ``.sha256`` checksum file alongside the master ``SHA256SUMS.txt`` file.
+
+---
+
+## 4. Target OS & Compatibility
+
+| Platform | Minimum Supported Version | Architecture | Packaging |
+|---|---|---|---|
+| **Windows Desktop** | Windows 10 (1809+) / Windows 11 | x64 | Native Installer / Portable ZIP |
+| **Windows ARM64** | Windows 11 ARM64 | ARM64 | Portable ZIP |
+| **Windows CLI** | Windows 10+ / Server 2019+ | x64 | Standalone Portable ZIP |
+| **Android** | Android 9.0 (API 28+) | Universal | APK / Source ZIP |
+
+---
+
+## 5. Security & Privacy Guarantee
+PhotoForge operates **100% offline** for all photo processing and metadata operations. Zero telemetry, tracking, or background socket connections are ever established.
+"@
+
+[System.IO.File]::WriteAllText($notesFile, $template)
+Write-Host "  [OK] Structured release notes generated at $notesFile" -ForegroundColor Green
 
 # 3. Commit version updates and tag
 Write-Host "`nCommitting version bumps and tagging $tag..." -ForegroundColor Cyan
@@ -85,25 +123,8 @@ git -C $RepoRoot push origin main --tags -f
 
 # 5. Publish GitHub Release with all distribution assets
 Write-Host "`nPublishing GitHub Release $tag..." -ForegroundColor Cyan
-$distDir = "$PSScriptRoot\dist"
-$candidateAssets = @(
-    "$distDir\PhotoForge-Setup-$tag-x64.exe",
-    "$distDir\PhotoForge-$tag.apk",
-    "$distDir\PhotoForge-$tag-Android.zip",
-    "$distDir\PhotoForge-$tag-CLI-win-x64.zip",
-    "$distDir\PhotoForge-$tag-Windows-arm64.zip",
-    "$distDir\PhotoForge-$tag-Windows-x64.zip",
-    "$distDir\SHA256SUMS.txt",
-    "$PSScriptRoot\installer\photoforge.iss",
-    "$RepoRoot\docs\branding\photoforge_feature_graphic.jpg",
-    "$RepoRoot\docs\branding\photoforge_banner.jpg",
-    "$RepoRoot\docs\branding\photoforge_logo.jpg",
-    "$RepoRoot\docs\branding\photoforge_app_icon.jpg",
-    "$RepoRoot\docs\branding\icons\app.ico"
-)
-
-$assets = $candidateAssets | Where-Object { Test-Path $_ }
-Write-Host "Found $($assets.Count) release assets to upload." -ForegroundColor Cyan
+$assets = Get-ChildItem -Path $distDir -File | ForEach-Object { $_.FullName }
+Write-Host "Found $($assets.Count) release assets to upload (binaries + checksums)." -ForegroundColor Cyan
 
 $existingRelease = $null
 try {

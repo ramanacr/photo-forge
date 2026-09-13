@@ -223,10 +223,14 @@ if (Test-Path $ChecksumFile) { Remove-Item -Force $ChecksumFile }
 $artifacts = Get-ChildItem -Path $OutputDir -File
 $checksumLines = [System.Collections.Generic.List[string]]::new()
 foreach ($file in $artifacts) {
-    if ($file.Name -ne "SHA256SUMS.txt") {
+    if ($file.Name -ne "SHA256SUMS.txt" -and -not $file.Name.EndsWith(".sha256")) {
         $hash = (Get-FileHash -Path $file.FullName -Algorithm SHA256).Hash.ToLower()
         $line = "$hash  $($file.Name)"
         $checksumLines.Add($line)
+        
+        # Write individual .sha256 file for delivery contract compliance
+        $shaFile = "$($file.FullName).sha256"
+        [System.IO.File]::WriteAllText($shaFile, "$hash  $($file.Name)`n")
         Write-Host "  $hash  $($file.Name)" -ForegroundColor Gray
     }
 }

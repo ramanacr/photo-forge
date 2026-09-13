@@ -90,8 +90,17 @@ function Set-ProjectVersions {
     <Copyright>Copyright (c) 2026 PhotoForge Contributors</Copyright>
     <RepositoryUrl>https://github.com/ramanacr/photo-forge</RepositoryUrl>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'`$(Configuration)' == 'Release'">
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'`$(Configuration)' == 'Debug'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 </Project>
 "@
