@@ -38,7 +38,7 @@ class AndroidImageEngine {
             }
             // TIFF: II*. or MM.*
             if ((header[0] == 0x49.toByte() && header[1] == 0x49.toByte() && header[2] == 0x2A.toByte()) ||
-                (header[0] == 0x4D.toByte() && header[1] == 0x4D.toByte() && header[3] == 0x2A.toByte())) {
+                (header[0] == 0x4D.toByte() && header[1] == 0x4D.toByte() && header[2] == 0x00.toByte() && header[3] == 0x2A.toByte())) {
                 return@withContext "TIFF/RAW"
             }
         } catch (e: Exception) {
@@ -60,10 +60,19 @@ class AndroidImageEngine {
 
     suspend fun computePerceptualHash(file: File): ULong = withContext(Dispatchers.IO) {
         try {
-            // Load and downsample to 9x8 grayscale
-            val full = BitmapFactory.decodeFile(file.absolutePath) ?: return@withContext 0uL
-            val scaled = Bitmap.createScaledBitmap(full, 9, 8, true)
-            if (scaled != full) full.recycle()
+            // Downsample first to prevent OutOfMemory on high-resolution camera photos
+            val boundsOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(file.absolutePath, boundsOptions)
+            var inSampleSize = 1
+            while (boundsOptions.outWidth / (inSampleSize * 2) >= 64 && boundsOptions.outHeight / (inSampleSize * 2) >= 64) {
+                inSampleSize *= 2
+            }
+            val decodeOptions = BitmapFactory.Options().apply {
+                this.inSampleSize = inSampleSize
+            }
+            val downsampled = BitmapFactory.decodeFile(file.absolutePath, decodeOptions) ?: return@withContext 0uL
+            val scaled = Bitmap.createScaledBitmap(downsampled, 9, 8, true)
+            if (scaled != downsampled) downsampled.recycle()
 
             var hash = 0uL
             var bitIndex = 0

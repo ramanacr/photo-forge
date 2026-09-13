@@ -130,8 +130,43 @@ public class CriticalInvariantsTests : IDisposable
     [Fact]
     public void INV06_OfflineGuarantee_CoreLibrariesMustNotTransmitOverNetwork()
     {
-        // Assert zero cloud dependencies in configuration and offline readiness
-        var profile = MergeProfile.StandardV1;
-        profile.Should().NotBeNull();
+        // Assert core engines do not declare or depend on System.Net.Http or System.Net.Sockets
+        var coreAsm = typeof(PhotoForge.Core.Pipeline.PhotoForgePipeline).Assembly;
+        var metaAsm = typeof(PhotoForge.Metadata.MetadataEngine).Assembly;
+        var imageAsm = typeof(PhotoForge.Imaging.ImageEngine).Assembly;
+        var matchAsm = typeof(PhotoForge.Matching.MatchingEngine).Assembly;
+        var storageAsm = typeof(PhotoForge.Storage.StorageEngine).Assembly;
+
+        foreach (var asm in new[] { coreAsm, metaAsm, imageAsm, matchAsm, storageAsm })
+        {
+            var referenced = asm.GetReferencedAssemblies();
+            referenced.Should().NotContain(r => r.Name == "System.Net.Http",
+                $"{asm.GetName().Name} must not reference System.Net.Http (Invariant INV-06: 100% Offline Core)");
+            referenced.Should().NotContain(r => r.Name == "System.Net.Sockets",
+                $"{asm.GetName().Name} must not reference System.Net.Sockets (Invariant INV-06: 100% Offline Core)");
+        }
+    }
+
+    [Fact]
+    public async Task CandidateCache_ShouldStoreAndRetrieveCachedValues()
+    {
+        var testPath = Path.Combine(_testDir, "cache_sample.jpg");
+        await _auditRepo.CacheCandidateFingerprintAsync(testPath, "abc123sha", 0x1234567890ABCDEF);
+
+        var cached = await _auditRepo.GetCachedCandidateAsync(testPath);
+        cached.Should().NotBeNull();
+        cached!.Value.sha256.Should().Be("abc123sha");
+        cached.Value.perceptualHash.Should().Be(0x1234567890ABCDEF);
+    }
+
+    [Fact]
+    public async Task ImageEngine_ConvertToHeic_ShouldThrowUnsupportedFormat_OnWindows()
+    {
+        var orig = TestPhotoFactory.CreateOriginalSample(_testDir, "heic_source.jpg");
+        var heicOut = Path.Combine(_testDir, "output.heic");
+
+        var act = () => _imageEngine.ConvertToHeicAsync(orig, heicOut);
+        var ex = await act.Should().ThrowAsync<PhotoForgeException>();
+        ex.Which.Error.Category.Should().Be(ErrorCategory.UnsupportedFormat);
     }
 }

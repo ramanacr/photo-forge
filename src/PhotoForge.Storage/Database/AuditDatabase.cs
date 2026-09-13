@@ -56,6 +56,10 @@ public class AuditDatabase : IAuditRepository, IDisposable
             using var conn = new SqliteConnection(_connectionString);
             await conn.OpenAsync(ct);
 
+            var pragmaCmd = conn.CreateCommand();
+            pragmaCmd.CommandText = "PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;";
+            await pragmaCmd.ExecuteNonQueryAsync(ct);
+
             var cmd = conn.CreateCommand();
             cmd.CommandText = @"
                 CREATE TABLE IF NOT EXISTS Migrations (
@@ -163,7 +167,7 @@ public class AuditDatabase : IAuditRepository, IDisposable
         {
             var src = reader.GetString(0);
             var prof = reader.GetString(1);
-            var ts = DateTime.Parse(reader.GetString(2));
+            var ts = DateTime.Parse(reader.GetString(2), System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind);
 
             return new MigrationMarker
             {
@@ -242,7 +246,7 @@ public class AuditDatabase : IAuditRepository, IDisposable
             var diffJson = reader.IsDBNull(8) ? "{}" : reader.GetString(8);
             var verJson = reader.IsDBNull(9) ? null : reader.GetString(9);
             var error = reader.IsDBNull(10) ? null : reader.GetString(10);
-            var ts = DateTime.Parse(reader.GetString(11));
+            var ts = DateTime.Parse(reader.GetString(11), System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind);
 
             var diff = JsonSerializer.Deserialize<MetadataDiff>(diffJson) ?? new MetadataDiff();
             VerificationResult? ver = !string.IsNullOrEmpty(verJson) ? JsonSerializer.Deserialize<VerificationResult>(verJson) : null;
@@ -285,6 +289,33 @@ public class AuditDatabase : IAuditRepository, IDisposable
         cmd.Parameters.AddWithValue("@ts", DateTime.UtcNow.ToString("O"));
 
         await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    public async Task<(string sha256, ulong perceptualHash)?> GetCachedCandidateAsync(string filePath, CancellationToken ct = default)
+    {
+        await InitializeAsync(ct);
+
+        using var conn = new SqliteConnection(_connectionString);
+        await conn.OpenAsync(ct);
+
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT Sha256, PerceptualHash
+            FROM CandidateCache
+            WHERE FilePath = @path
+            LIMIT 1;
+        ";
+        cmd.Parameters.AddWithValue("@path", filePath);
+
+        using var reader = await cmd.ExecuteReaderAsync(ct);
+        if (await reader.ReadAsync(ct))
+        {
+            var sha = reader.GetString(0);
+            var phashLong = reader.GetInt64(1);
+            return (sha, (ulong)phashLong);
+        }
+
+        return null;
     }
 
     public void Dispose()

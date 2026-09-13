@@ -51,7 +51,7 @@ public static class ShellRegistration
             using var cmd1 = subShell.CreateSubKey("cmd1_restore");
             cmd1.SetValue("MUIVerb", "Restore Metadata from Original");
             using var cmd1Exec = cmd1.CreateSubKey("command");
-            cmd1Exec.SetValue("", $"\"{executablePath}\" restore --edited \"%1\"");
+            cmd1Exec.SetValue("", $"\"{executablePath}\" restore --edited \"%1\" --auto-match");
 
             // 2. Restore + HEIC
             using var cmd2 = subShell.CreateSubKey("cmd2_heic");

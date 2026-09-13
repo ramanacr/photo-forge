@@ -74,7 +74,7 @@ public class Program
 
             return command switch
             {
-                "restore" => await HandleRestoreAsync(args, pipeline, metadataEngine, jsonMode),
+                "restore" => await HandleRestoreAsync(args, pipeline, metadataEngine, matchingEngine, imageEngine, storageEngine, jsonMode),
                 "convert" => await HandleConvertAsync(args, pipeline, imageEngine, jsonMode),
                 "verify" => await HandleVerifyAsync(args, pipeline, jsonMode),
                 "inspect" => await HandleInspectAsync(args, metadataEngine, imageEngine, jsonMode),
@@ -160,7 +160,14 @@ public class Program
     private static bool HasFlag(string[] args, string name) =>
         args.Any(a => string.Equals(a, name, StringComparison.OrdinalIgnoreCase));
 
-    private static async Task<int> HandleRestoreAsync(string[] args, IPhotoForgePipeline pipeline, IMetadataEngine metaEngine, bool jsonMode)
+    private static async Task<int> HandleRestoreAsync(
+        string[] args,
+        IPhotoForgePipeline pipeline,
+        IMetadataEngine metaEngine,
+        IMatchingEngine matchingEngine,
+        IImageEngine imageEngine,
+        IStorageEngine storageEngine,
+        bool jsonMode)
     {
         var original = GetOption(args, "--original") ?? GetOption(args, "-o");
         var edited = GetOption(args, "--edited") ?? GetOption(args, "-e") ?? GetOption(args, "--input") ?? GetOption(args, "-i");
@@ -212,8 +219,74 @@ public class Program
 
         if (string.IsNullOrWhiteSpace(original))
         {
-            if (!jsonMode) AnsiConsole.MarkupLine("[red]Missing required argument: --original <path>[/]");
-            return 1;
+            if (HasFlag(args, "--auto-match") && File.Exists(edited))
+            {
+                if (!jsonMode) AnsiConsole.MarkupLine("[cyan]Searching for matching camera original in nearby directories...[/]");
+                var editedDir = Path.GetDirectoryName(Path.GetFullPath(edited)) ?? "";
+                var pool = new List<string>();
+
+                if (Directory.Exists(editedDir))
+                {
+                    pool.AddRange(Directory.EnumerateFiles(editedDir, "*.*", SearchOption.TopDirectoryOnly));
+                }
+
+                var parentDir = Path.GetDirectoryName(editedDir);
+                if (!string.IsNullOrEmpty(parentDir) && Directory.Exists(parentDir))
+                {
+                    var relatedFolderNames = new[] { "originals", "original", "raw", "masters", "master", "source", "sources", "unedited", "camera", "dcim" };
+                    foreach (var sub in Directory.EnumerateDirectories(parentDir))
+                    {
+                        var dirName = Path.GetFileName(sub);
+                        if (relatedFolderNames.Contains(dirName, StringComparer.OrdinalIgnoreCase))
+                        {
+                            pool.AddRange(Directory.EnumerateFiles(sub, "*.*", SearchOption.TopDirectoryOnly));
+                        }
+                    }
+                }
+
+                var candidateFiles = pool
+                    .Where(p => !string.Equals(p, Path.GetFullPath(edited), StringComparison.OrdinalIgnoreCase) &&
+                                PhotoFormatExtensions.SupportsExifMetadata(imageEngine.SniffFormat(p)))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                if (candidateFiles.Count > 0)
+                {
+                    var candidateRefs = new List<PhotoRef>();
+                    foreach (var cp in candidateFiles)
+                    {
+                        var cFmt = imageEngine.SniffFormat(cp);
+                        var cSha = await storageEngine.ComputeFileSha256Async(cp);
+                        var cDim = await imageEngine.InspectDimensionsAsync(cp);
+                        var cMeta = await metaEngine.ExtractMetadataAsync(cp);
+                        candidateRefs.Add(PhotoRef.Create(cp, cFmt, new FileInfo(cp).Length, cSha, cDim, metadata: cMeta));
+                    }
+
+                    var tFmt = imageEngine.SniffFormat(edited);
+                    var tSha = await storageEngine.ComputeFileSha256Async(edited);
+                    var tDim = await imageEngine.InspectDimensionsAsync(edited);
+                    var tMeta = await metaEngine.ExtractMetadataAsync(edited);
+                    var targetRef = PhotoRef.Create(edited, tFmt, new FileInfo(edited).Length, tSha, tDim, metadata: tMeta);
+
+                    var bestMatch = await matchingEngine.FindBestMatchAsync(targetRef, candidateRefs);
+                    if (bestMatch != null && bestMatch.Score >= 0.70)
+                    {
+                        original = bestMatch.CandidateRef.FilePath;
+                        if (!jsonMode)
+                        {
+                            AnsiConsole.MarkupLine($"[green]✔ Found matching camera original:[/] [bold]{Path.GetFileName(original)}[/] ([cyan]{bestMatch.Score:P0} match[/])");
+                            if (bestMatch.Reasons.Count > 0)
+                                AnsiConsole.MarkupLine($"[grey]Match reasons: {string.Join(", ", bestMatch.Reasons)}[/]");
+                        }
+                    }
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(original))
+            {
+                if (!jsonMode) AnsiConsole.MarkupLine("[red]Missing required argument: --original <path>[/] (or specify --auto-match to search related directories)");
+                return 1;
+            }
         }
 
         var result = await pipeline.ProcessSinglePairAsync(original, edited, output, profile, convertToHeic: heic);

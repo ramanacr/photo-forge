@@ -28,13 +28,13 @@
 
                 <!-- Navigation List -->
                 <StackPanel DockPanel.Dock="Top">
-                    <RadioButton x:Name="NavHome" Content="🏠 Quick Restore" IsChecked="True" GroupName="Nav" Style="{x:Null}" Foreground="{StaticResource TextPrimary}" Padding="12,10" Margin="0,2" Cursor="Hand" Click="Nav_Click"/>
-                    <RadioButton x:Name="NavBatch" Content="⚡ Batch Processing" GroupName="Nav" Style="{x:Null}" Foreground="{StaticResource TextPrimary}" Padding="12,10" Margin="0,2" Cursor="Hand" Click="Nav_Click"/>
-                    <RadioButton x:Name="NavReview" Content="🔍 Match Review" GroupName="Nav" Style="{x:Null}" Foreground="{StaticResource TextPrimary}" Padding="12,10" Margin="0,2" Cursor="Hand" Click="Nav_Click"/>
-                    <RadioButton x:Name="NavDiff" Content="📊 Metadata Diff" GroupName="Nav" Style="{x:Null}" Foreground="{StaticResource TextPrimary}" Padding="12,10" Margin="0,2" Cursor="Hand" Click="Nav_Click"/>
-                    <RadioButton x:Name="NavHeic" Content="📦 HEIC Studio" GroupName="Nav" Style="{x:Null}" Foreground="{StaticResource TextPrimary}" Padding="12,10" Margin="0,2" Cursor="Hand" Click="Nav_Click"/>
-                    <RadioButton x:Name="NavHistory" Content="📜 Audit History" GroupName="Nav" Style="{x:Null}" Foreground="{StaticResource TextPrimary}" Padding="12,10" Margin="0,2" Cursor="Hand" Click="Nav_Click"/>
-                    <RadioButton x:Name="NavSettings" Content="⚙️ Settings" GroupName="Nav" Style="{x:Null}" Foreground="{StaticResource TextPrimary}" Padding="12,10" Margin="0,2" Cursor="Hand" Click="Nav_Click"/>
+                    <RadioButton x:Name="NavHome" Content="🏠  Quick Restore" IsChecked="True" GroupName="Nav" Style="{StaticResource NavRadioButton}" Click="Nav_Click"/>
+                    <RadioButton x:Name="NavBatch" Content="⚡  Batch Processing" GroupName="Nav" Style="{StaticResource NavRadioButton}" Click="Nav_Click"/>
+                    <RadioButton x:Name="NavReview" Content="🔍  Match Review" GroupName="Nav" Style="{StaticResource NavRadioButton}" Click="Nav_Click"/>
+                    <RadioButton x:Name="NavDiff" Content="📊  Metadata Diff" GroupName="Nav" Style="{StaticResource NavRadioButton}" Click="Nav_Click"/>
+                    <RadioButton x:Name="NavHeic" Content="📦  HEIC Studio" GroupName="Nav" Style="{StaticResource NavRadioButton}" Click="Nav_Click"/>
+                    <RadioButton x:Name="NavHistory" Content="📜  Audit History" GroupName="Nav" Style="{StaticResource NavRadioButton}" Click="Nav_Click"/>
+                    <RadioButton x:Name="NavSettings" Content="⚙️  Settings" GroupName="Nav" Style="{StaticResource NavRadioButton}" Click="Nav_Click"/>
                 </StackPanel>
 
                 <!-- Status & Mode footer -->
@@ -88,7 +88,7 @@
                             <TextBlock Text="🎨 Edited Target Photo" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" />
                             <TextBlock Text="Drag &amp; drop edited copy or export here" FontSize="12" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" Margin="0,6,0,12" />
                             <Button Content="Browse Edited..." Click="BrowseEdited_Click" HorizontalAlignment="Center" />
-                            <TextBlock x:Name="TxtEditedPath" Text="(No file selected)" FontSize="11" Foreground="{StaticResource AccentSecondary}" TextWrapping="Wrap" Margin="0,10,0,0" HorizontalAlignment="Center" />
+                            <TextBlock x:Name="TxtEditedPath" Text="(No file selected)" FontSize="11" Foreground="{StaticResource AccentPrimaryHover}" TextWrapping="Wrap" Margin="0,10,0,0" HorizontalAlignment="Center" />
                         </StackPanel>
                     </Border>
                 </Grid>
@@ -101,8 +101,8 @@
                             <CheckBox x:Name="ChkOverwrite" Content="In-place Overwrite" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
-                            <Button Content="Inspect Diff" Background="{StaticResource SurfaceDarker}" Margin="0,0,8,0" Click="InspectDiff_Click" />
-                            <Button Content="⚡ Restore Metadata" Background="{StaticResource AccentSuccess}" Click="Restore_Click" />
+                            <Button Content="Inspect Diff" Margin="0,0,8,0" Click="InspectDiff_Click" />
+                            <Button Content="⚡ Restore Metadata" Style="{StaticResource PrimaryButton}" Click="Restore_Click" />
                         </StackPanel>
                     </DockPanel>
                 </Border>
@@ -157,7 +157,7 @@
                     </ListView>
                 </Border>
 
-                <Button Grid.Row="3" Content="Run Batch Migration" Background="{StaticResource AccentPrimary}" Margin="0,16,0,0" Click="RunBatch_Click" />
+                <Button Grid.Row="3" Content="Run Batch Migration" Style="{StaticResource PrimaryButton}" Margin="0,16,0,0" Click="RunBatch_Click" />
             </Grid>
 
             <!-- 3. Matching Review Tab -->
@@ -180,9 +180,9 @@
                     </DataGrid>
                 </Border>
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
-                    <Button Content="Accept All High Confidence" Background="{StaticResource AccentSuccess}" Margin="0,0,8,0" Click="AcceptAllMatches_Click" />
+                    <Button Content="Accept All High Confidence" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0" Click="AcceptAllMatches_Click" />
                     <Button Content="Change Original..." Margin="0,0,8,0" Click="ChangeOriginal_Click" />
-                    <Button Content="Mark No Original" Background="{StaticResource SurfaceDarker}" Click="MarkNoOriginal_Click" />
+                    <Button Content="Mark No Original" Click="MarkNoOriginal_Click" />
                 </StackPanel>
             </Grid>
 
@@ -229,7 +229,7 @@
                         <CheckBox x:Name="ChkPreserveColorSpace" Content="Preserve ICC color profiles" IsChecked="True" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,8" />
                     </StackPanel>
                 </Border>
-                <Button Grid.Row="2" Content="Convert Selected Photos" Background="{StaticResource AccentPrimary}" Margin="0,16,0,0" Click="ConvertStudio_Click" />
+                <Button Grid.Row="2" Content="Convert Selected Photos" Style="{StaticResource PrimaryButton}" Margin="0,16,0,0" Click="ConvertStudio_Click" />
             </Grid>
 
             <!-- 6. History Tab -->
@@ -253,7 +253,7 @@
                 </Border>
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
                     <Button Content="Refresh History" Margin="0,0,8,0" Click="RefreshHistory_Click" />
-                    <Button Content="Export Report (Markdown / JSON)..." Background="{StaticResource AccentSecondary}" Click="ExportReport_Click" />
+                    <Button Content="Export Report (Markdown / JSON)..." Click="ExportReport_Click" />
                 </StackPanel>
             </Grid>
 

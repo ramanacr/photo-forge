@@ -3,12 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Startup="Application_Startup">
     <Application.Resources>
-        <SolidColorBrush x:Key="BgBrush" Color="#121212" />
-        <SolidColorBrush x:Key="CardBrush" Color="#1E1E1E" />
-        <SolidColorBrush x:Key="AccentBrush" Color="#00B4D8" />
-        <SolidColorBrush x:Key="TextPrimary" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="TextSecondary" Color="#AAAAAA" />
-        <SolidColorBrush x:Key="BorderBrush" Color="#2A2A2A" />
+        <SolidColorBrush x:Key="BgBrush" Color="#171A1C" />
+        <SolidColorBrush x:Key="CardBrush" Color="#24292C" />
+        <SolidColorBrush x:Key="CardHoverBrush" Color="#383F42" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#B7FF3C" />
+        <SolidColorBrush x:Key="AccentHoverBrush" Color="#C9FF70" />
+        <SolidColorBrush x:Key="TextPrimary" Color="#F1F4EF" />
+        <SolidColorBrush x:Key="TextSecondary" Color="#AAB2B0" />
+        <SolidColorBrush x:Key="BorderBrush" Color="#485054" />
+        <SolidColorBrush x:Key="BorderSubtleBrush" Color="#353B3E" />
+        <SolidColorBrush x:Key="TextOnAccent" Color="#172000" />
 
         <Style TargetType="Button">
             <Setter Property="Background" Value="{StaticResource CardBrush}" />
@@ -34,8 +38,9 @@
 
         <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-            <Setter Property="Foreground" Value="#000000" />
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextOnAccent}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AccentHoverBrush}" />
+            <Setter Property="FontWeight" Value="Bold" />
         </Style>
     </Application.Resources>
 </Application>

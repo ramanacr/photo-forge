@@ -93,14 +93,29 @@ public static class InstallerEngine
                     var entryProgress = 0.15 + (0.55 * ((double)currentEntry / Math.Max(1, totalEntries)));
                     progressCallback?.Invoke($"Extracting {entry.Name}...", entryProgress);
 
+                    var fullTargetDir = Path.GetFullPath(targetDir);
+                    if (!fullTargetDir.EndsWith(Path.DirectorySeparatorChar))
+                    {
+                        fullTargetDir += Path.DirectorySeparatorChar;
+                    }
+
                     if (string.IsNullOrEmpty(entry.Name))
                     {
-                        var dirPath = Path.Combine(targetDir, entry.FullName);
+                        var dirPath = Path.GetFullPath(Path.Combine(targetDir, entry.FullName));
+                        if (!dirPath.StartsWith(fullTargetDir, StringComparison.OrdinalIgnoreCase))
+                        {
+                            throw new System.Security.SecurityException($"Zip entry attempted directory traversal: {entry.FullName}");
+                        }
                         Directory.CreateDirectory(dirPath);
                         continue;
                     }
 
-                    var destPath = Path.Combine(targetDir, entry.FullName);
+                    var destPath = Path.GetFullPath(Path.Combine(targetDir, entry.FullName));
+                    if (!destPath.StartsWith(fullTargetDir, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new System.Security.SecurityException($"Zip entry attempted directory traversal: {entry.FullName}");
+                    }
+
                     var destDir = Path.GetDirectoryName(destPath);
                     if (!string.IsNullOrEmpty(destDir) && !Directory.Exists(destDir))
                     {

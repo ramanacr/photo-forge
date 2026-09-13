@@ -78,6 +78,7 @@ public interface IAuditRepository
     Task RecordBatchAsync(BatchSummary summary, CancellationToken ct = default);
     Task<IReadOnlyList<OperationResult>> GetRecentHistoryAsync(int limit = 100, CancellationToken ct = default);
     Task CacheCandidateFingerprintAsync(string filePath, string sha256, ulong perceptualHash, CancellationToken ct = default);
+    Task<(string sha256, ulong perceptualHash)?> GetCachedCandidateAsync(string filePath, CancellationToken ct = default);
 }
 
 /// <summary>

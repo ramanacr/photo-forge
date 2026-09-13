@@ -54,7 +54,7 @@ public class ImageEngine : IImageEngine
             try
             {
                 using var image = Image.Load<Rgba32>(filePath);
-                return ComputeDHash(image);
+                return ComputeDHashFromImage(image);
             }
             catch
             {
@@ -73,7 +73,7 @@ public class ImageEngine : IImageEngine
                 using var image = Image.Load<Rgba32>(stream);
                 if (stream.CanSeek)
                     stream.Position = pos;
-                return ComputeDHash(image);
+                return ComputeDHashFromImage(image);
             }
             catch
             {
@@ -82,10 +82,9 @@ public class ImageEngine : IImageEngine
         }, ct);
     }
 
-    private static ulong ComputeDHash(Image<Rgba32> source)
+    private static ulong ComputeDHashFromImage(Image<Rgba32> image)
     {
-        // 1. Resize to 9x8 grayscale
-        using var clone = source.Clone(ctx => ctx
+        image.Mutate(ctx => ctx
             .Resize(new ResizeOptions
             {
                 Size = new Size(9, 8),
@@ -101,8 +100,8 @@ public class ImageEngine : IImageEngine
         {
             for (int x = 0; x < 8; x++)
             {
-                var left = clone[x, y].R;
-                var right = clone[x + 1, y].R;
+                var left = image[x, y].R;
+                var right = image[x + 1, y].R;
 
                 if (left > right)
                 {
@@ -113,6 +112,21 @@ public class ImageEngine : IImageEngine
         }
 
         return hash;
+    }
+
+    private static ulong ComputeDHash(Image<Rgba32> source)
+    {
+        // 1. Resize to 9x8 grayscale
+        using var clone = source.Clone(ctx => ctx
+            .Resize(new ResizeOptions
+            {
+                Size = new Size(9, 8),
+                Mode = ResizeMode.Stretch,
+                Sampler = KnownResamplers.Bicubic
+            })
+            .Grayscale());
+
+        return ComputeDHashFromImage(clone);
     }
 
     public double ComparePerceptualHashes(ulong hash1, ulong hash2)
@@ -156,6 +170,15 @@ public class ImageEngine : IImageEngine
     {
         await Task.Run(() =>
         {
+            var ext = Path.GetExtension(destinationPath).ToLowerInvariant();
+            if (ext is ".heic" or ".heif")
+            {
+                throw new PhotoForgeException(
+                    ErrorCategory.UnsupportedFormat,
+                    "Native HEIC encoding is not supported by the desktop runtime on Windows. Please convert to WebP, JPEG, or PNG, or use the PhotoForge Android app for hardware HEIC encoding.",
+                    $"Destination requested: {destinationPath}");
+            }
+
             using var image = Image.Load(sourcePath);
 
             // Inject EXIF/IPTC metadata into ImageSharp image structure
@@ -174,7 +197,6 @@ public class ImageEngine : IImageEngine
                 _ => 85
             };
 
-            var ext = Path.GetExtension(destinationPath).ToLowerInvariant();
             if (ext == ".webp")
             {
                 var encoder = new WebpEncoder

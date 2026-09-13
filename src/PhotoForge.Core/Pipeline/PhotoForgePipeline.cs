@@ -173,11 +173,24 @@ public class PhotoForgePipeline : IPhotoForgePipeline
             ct.ThrowIfCancellationRequested();
             if (!File.Exists(origPath)) continue;
 
-            var sha = await _storageEngine.ComputeFileSha256Async(origPath, ct);
+            var cached = await _auditRepo.GetCachedCandidateAsync(origPath, ct);
+            string sha;
+            ulong phash;
+            if (cached.HasValue)
+            {
+                sha = cached.Value.sha256;
+                phash = cached.Value.perceptualHash;
+            }
+            else
+            {
+                sha = await _storageEngine.ComputeFileSha256Async(origPath, ct);
+                phash = await _imageEngine.ComputePerceptualHashAsync(origPath, ct);
+                await _auditRepo.CacheCandidateFingerprintAsync(origPath, sha, phash, ct);
+            }
+
             var fmt = _imageEngine.SniffFormat(origPath);
             var dim = await _imageEngine.InspectDimensionsAsync(origPath, ct);
             var meta = await _metadataEngine.ExtractMetadataAsync(origPath, ct);
-            var phash = await _imageEngine.ComputePerceptualHashAsync(origPath, ct);
 
             originalRefs.Add(PhotoRef.Create(origPath, fmt, new FileInfo(origPath).Length, sha, dim, metadata: meta, perceptualHash: phash));
         }

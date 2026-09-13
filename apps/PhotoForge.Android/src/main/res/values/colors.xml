@@ -1,18 +1,21 @@
 <resources>
-    <color name="bg_dark">#121212</color>
-    <color name="surface_dark">#1E1E1E</color>
-    <color name="card_dark">#252525</color>
-    <color name="card_dark_secondary">#2D2D2D</color>
-    <color name="accent_cyan">#00B4D8</color>
-    <color name="accent_green">#4ADE80</color>
-    <color name="accent_yellow">#FBBF24</color>
-    <color name="accent_red">#F87171</color>
-    <color name="accent_blue">#60A5FA</color>
-    <color name="text_primary">#FFFFFF</color>
-    <color name="text_secondary">#AAAAAA</color>
-    <color name="text_muted">#777777</color>
-    <color name="border_dark">#333333</color>
-    <color name="badge_auto">#1B4332</color>
-    <color name="badge_suggested">#004B6E</color>
-    <color name="badge_review">#583B06</color>
+    <color name="bg_dark">#171A1C</color>
+    <color name="surface_dark">#24292C</color>
+    <color name="card_dark">#24292C</color>
+    <color name="card_dark_secondary">#303639</color>
+    <color name="accent_cyan">#B7FF3C</color>
+    <color name="accent_green">#B7FF3C</color>
+    <color name="accent_green_bright">#C9FF70</color>
+    <color name="accent_yellow">#FFC857</color>
+    <color name="accent_red">#FF6577</color>
+    <color name="accent_blue">#62C3FF</color>
+    <color name="text_primary">#F1F4EF</color>
+    <color name="text_secondary">#AAB2B0</color>
+    <color name="text_muted">#707876</color>
+    <color name="text_on_radium">#172000</color>
+    <color name="border_dark">#485054</color>
+    <color name="border_subtle">#353B3E</color>
+    <color name="badge_auto">#263B12</color>
+    <color name="badge_suggested">#243339</color>
+    <color name="badge_review">#3A3114</color>
 </resources>

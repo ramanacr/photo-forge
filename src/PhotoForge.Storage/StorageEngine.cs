@@ -18,10 +18,10 @@ public class StorageEngine : IStorageEngine
         if (!File.Exists(filePath))
             throw new FileNotFoundException($"File not found: {filePath}", filePath);
 
-        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 81920, useAsync: true);
+        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true);
         using var sha = SHA256.Create();
-        var hashBytes = await Task.Run(() => sha.ComputeHash(stream), ct);
-        return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+        var hashBytes = await sha.ComputeHashAsync(stream, ct);
+        return Convert.ToHexStringLower(hashBytes);
     }
 
     public string CreateTempFilePath(string targetPath)

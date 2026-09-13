@@ -63,8 +63,6 @@ public partial class MainWindow : Window
         {
             TxtVersionInfo.Text = $"PhotoForge v{appVer} (Installed)";
         }
-
-        Loaded += (s, e) => _ = BackgroundStartupUpdateCheckAsync();
     }
 
     private string GetCurrentAppVersion()
@@ -270,35 +268,45 @@ public partial class MainWindow : Window
             return;
         }
 
-        var editedFiles = Directory.EnumerateFiles(TxtBatchEditedDir.Text, "*.*", SearchOption.TopDirectoryOnly)
-            .Where(f => !f.Contains("PhotoForge_Restored"))
-            .ToList();
-        var origFiles = Directory.EnumerateFiles(TxtBatchOriginalsDir.Text, "*.*", SearchOption.AllDirectories).ToList();
+        var btn = sender as Button;
+        if (btn != null) btn.IsEnabled = false;
 
-        BatchResults.Clear();
-        var outDir = Path.Combine(TxtBatchEditedDir.Text, "PhotoForge_Restored");
-
-        var summary = await _pipeline.ProcessBatchAsync(
-            editedFiles,
-            origFiles,
-            outDir,
-            MergeProfile.StandardV1,
-            autoAcceptConfidentMatches: true);
-
-        foreach (var r in summary.Results)
+        try
         {
-            BatchResults.Add(new BatchItemViewModel
-            {
-                TargetFileName = r.TargetRef.FileName,
-                OriginalFileName = r.OriginalRef?.FileName ?? "(None)",
-                ScoreFormatted = "100%",
-                Status = r.Status.ToString(),
-                Notes = r.ErrorMessage ?? (r.Diff.Warnings.Count > 0 ? string.Join(", ", r.Diff.Warnings) : "Restored successfully")
-            });
-        }
+            var editedFiles = Directory.EnumerateFiles(TxtBatchEditedDir.Text, "*.*", SearchOption.TopDirectoryOnly)
+                .Where(f => !f.Contains("PhotoForge_Restored", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            var origFiles = Directory.EnumerateFiles(TxtBatchOriginalsDir.Text, "*.*", SearchOption.AllDirectories).ToList();
 
-        MessageBox.Show($"Batch complete!\nTotal: {summary.TotalItems}\nSucceeded: {summary.SucceededCount}\nSkipped: {summary.SkippedCount}\nFailed: {summary.FailedCount}",
-            "Batch Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+            BatchResults.Clear();
+            var outDir = Path.Combine(TxtBatchEditedDir.Text, "PhotoForge_Restored");
+
+            var summary = await _pipeline.ProcessBatchAsync(
+                editedFiles,
+                origFiles,
+                outDir,
+                MergeProfile.StandardV1,
+                autoAcceptConfidentMatches: true);
+
+            foreach (var r in summary.Results)
+            {
+                BatchResults.Add(new BatchItemViewModel
+                {
+                    TargetFileName = r.TargetRef.FileName,
+                    OriginalFileName = r.OriginalRef?.FileName ?? "(None)",
+                    ScoreFormatted = "100%",
+                    Status = r.Status.ToString(),
+                    Notes = r.ErrorMessage ?? (r.Diff.Warnings.Count > 0 ? string.Join(", ", r.Diff.Warnings) : "Restored successfully")
+                });
+            }
+
+            MessageBox.Show($"Batch complete!\nTotal: {summary.TotalItems}\nSucceeded: {summary.SucceededCount}\nSkipped: {summary.SkippedCount}\nFailed: {summary.FailedCount}",
+                "Batch Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        finally
+        {
+            if (btn != null) btn.IsEnabled = true;
+        }
     }
 
     private void AcceptAllMatches_Click(object sender, RoutedEventArgs e)
