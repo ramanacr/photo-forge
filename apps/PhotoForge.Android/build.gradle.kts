@@ -11,8 +11,8 @@ android {
         applicationId = "com.photoforge.app"
         minSdk = 28
         targetSdk = 34
-        versionCode = 10300
-        versionName = "1.3.0"
+        versionCode = 10400
+        versionName = "1.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
